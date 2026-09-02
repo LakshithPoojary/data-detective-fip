@@ -97,7 +97,7 @@ def now_iso():
 def db_get_state():
     if not sb:
         return None
-    r = sb.table("class_state").select("*").eq("id", 1).limit(1).execute()
+    r = sb.table("data_detective_state").select("*").eq("id", 1).limit(1).execute()
     return r.data[0] if r.data else None
 
 def db_update_state(stage=None, round_no=None):
@@ -109,12 +109,12 @@ def db_update_state(stage=None, round_no=None):
         payload["stage_started_at"] = now_iso()
     if round_no is not None:
         payload["round_no"] = round_no
-    sb.table("class_state").update(payload).eq("id", 1).execute()
+    sb.table("data_detective_state").update(payload).eq("id", 1).execute()
 
-def db_get_pairs():
+def db_get_data_detective_pairs():
     if not sb:
         return []
-    r = sb.table("pairs").select("*").eq("round_no", int(db_get_state()["round_no"])).order("pair_no").execute()
+    r = sb.table("data_detective_pairs").select("*").eq("round_no", int(db_get_state()["round_no"])).order("pair_no").execute()
     return r.data or []
 
 def db_join_pair():
@@ -122,35 +122,35 @@ def db_join_pair():
         return None, "Database is not configured."
     state = db_get_state()
     round_no = int(state["round_no"])
-    existing = sb.table("pairs").select("*").eq("round_no", round_no).eq("session_token", st.session_state.token).limit(1).execute()
+    existing = sb.table("data_detective_pairs").select("*").eq("round_no", round_no).eq("session_token", st.session_state.token).limit(1).execute()
     if existing.data:
         return existing.data[0], None
 
     # Try each free slot. Verification after update prevents two clients
     # from believing they own the same slot.
     for n in range(1, 13):
-        free = sb.table("pairs").select("*").eq("round_no", round_no).eq("pair_no", n).is_("session_token", "null").limit(1).execute()
+        free = sb.table("data_detective_pairs").select("*").eq("round_no", round_no).eq("pair_no", n).is_("session_token", "null").limit(1).execute()
         if not free.data:
             continue
-        sb.table("pairs").update({
+        sb.table("data_detective_pairs").update({
             "session_token": st.session_state.token,
             "joined_at": now_iso(),
         }).eq("round_no", round_no).eq("pair_no", n).is_("session_token", "null").execute()
-        check = sb.table("pairs").select("*").eq("round_no", round_no).eq("pair_no", n).limit(1).execute()
+        check = sb.table("data_detective_pairs").select("*").eq("round_no", round_no).eq("pair_no", n).limit(1).execute()
         if check.data and check.data[0].get("session_token") == st.session_state.token:
             return check.data[0], None
-    return None, "All 12 pairs are already occupied."
+    return None, "All 12 data_detective_pairs are already occupied."
 
 def db_submit_think(pair_no, answer):
     state = db_get_state()
-    sb.table("pairs").update({
+    sb.table("data_detective_pairs").update({
         "think_answer": answer,
         "think_submitted_at": now_iso()
     }).eq("round_no", int(state["round_no"])).eq("pair_no", pair_no).execute()
 
 def db_submit_share(pair_no, text):
     state = db_get_state()
-    sb.table("pairs").update({
+    sb.table("data_detective_pairs").update({
         "share_text": text.strip(),
         "share_submitted_at": now_iso()
     }).eq("round_no", int(state["round_no"])).eq("pair_no", pair_no).execute()
@@ -158,10 +158,10 @@ def db_submit_share(pair_no, text):
 def db_reset_round():
     state = db_get_state()
     new_round = int(state["round_no"]) + 1
-    sb.table("pairs").delete().eq("round_no", new_round).execute()
+    sb.table("data_detective_pairs").delete().eq("round_no", new_round).execute()
     rows = [{"round_no": new_round, "pair_no": n} for n in range(1, 13)]
-    sb.table("pairs").insert(rows).execute()
-    sb.table("class_state").update({
+    sb.table("data_detective_pairs").insert(rows).execute()
+    sb.table("data_detective_state").update({
         "round_no": new_round, "stage": "WAITING",
         "stage_started_at": now_iso(), "updated_at": now_iso()
     }).eq("id", 1).execute()
@@ -188,9 +188,9 @@ def make_qr(url):
     img.save(buf, format="PNG")
     return buf.getvalue()
 
-def answer_counts(pairs):
+def answer_counts(data_detective_pairs):
     counts = {x: 0 for x in OPTIONS}
-    for p in pairs:
+    for p in data_detective_pairs:
         a = p.get("think_answer")
         if a in counts:
             counts[a] += 1
@@ -214,7 +214,7 @@ if role == "home":
     st.markdown("""
     <div class="hero">
       <h1>📊 Data Detective — Live Classroom Challenge</h1>
-      <p>Teacher controls the room • Students join by QR • 12 pairs maximum</p>
+      <p>Teacher controls the room • Students join by QR • 12 data_detective_pairs maximum</p>
     </div>
     """, unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -239,8 +239,8 @@ elif role == "teacher":
         st.stop()
 
     stage = state["stage"]
-    pairs = db_get_pairs() if sb else []
-    joined = sum(1 for p in pairs if p.get("session_token"))
+    data_detective_pairs = db_get_data_detective_pairs() if sb else []
+    joined = sum(1 for p in data_detective_pairs if p.get("session_token"))
 
     st.markdown(f"""
     <div class="hero">
@@ -278,23 +278,23 @@ elif role == "teacher":
         st.markdown('<div class="panel">', unsafe_allow_html=True)
         if stage == "WAITING":
             st.markdown('<div class="stage">Waiting</div>', unsafe_allow_html=True)
-            st.markdown('<div class="question">Get your pairs ready.<br>Scan the QR code to join.</div>', unsafe_allow_html=True)
-            st.info("Maximum: 12 pairs • One device per pair")
+            st.markdown('<div class="question">Get your data_detective_pairs ready.<br>Scan the QR code to join.</div>', unsafe_allow_html=True)
+            st.info("Maximum: 12 data_detective_pairs • One device per pair")
         elif stage == "THINK":
             st.markdown('<div class="stage">Think — 30 seconds</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="question">{QUESTION}<br><br>Which visualization should we use?</div>', unsafe_allow_html=True)
-            counts = answer_counts(pairs)
+            counts = answer_counts(data_detective_pairs)
             for k, v in counts.items():
                 st.markdown(f'<div class="answer-card"><b>{k}</b><span style="float:right">{v}</span></div>', unsafe_allow_html=True)
         elif stage == "PAIR":
             st.markdown('<div class="stage">Pair — 30 seconds</div>', unsafe_allow_html=True)
             st.markdown('<div class="question">Discuss with your partner:<br>Why is this visualization the best choice?</div>', unsafe_allow_html=True)
-            counts = answer_counts(pairs)
+            counts = answer_counts(data_detective_pairs)
             st.markdown(f"**Responses received:** {sum(counts.values())} / {joined}")
         elif stage == "SHARE":
             st.markdown('<div class="stage">Share</div>', unsafe_allow_html=True)
             st.markdown('<div class="question">Give your final reasoning.<br>What conclusion can we draw?</div>', unsafe_allow_html=True)
-            texts = [p.get("share_text") for p in pairs if p.get("share_text")]
+            texts = [p.get("share_text") for p in data_detective_pairs if p.get("share_text")]
             st.markdown(f"**Responses received:** {len(texts)} / {joined}")
             for t in texts[-8:]:
                 st.markdown(f'<div class="answer-card">{t}</div>', unsafe_allow_html=True)
