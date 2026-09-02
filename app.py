@@ -23,37 +23,28 @@ st.set_page_config(
 # ---------- Theme ----------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap');
-html, body, [class*="css"] { font-family: Inter, sans-serif; }
-#MainMenu, footer, header { visibility:hidden; }
-.block-container { padding: 1rem 2rem 2rem; max-width: 1500px; }
-.hero {
-    border-radius: 22px; padding: 18px 24px; margin-bottom: 14px;
-    border: 1px solid rgba(30,41,59,.12); background: #ffffff;
-}
-.hero h1 { margin:0; font-size: 34px; font-weight:800; }
-.hero p { margin:5px 0 0; font-size:16px; opacity:.72; }
-.panel {
-    border:1px solid rgba(30,41,59,.13); border-radius:20px;
-    padding:22px; background:#fff; min-height:560px;
-    box-shadow:0 8px 28px rgba(15,23,42,.06);
-}
-.dataset-title { font-size:25px; font-weight:800; margin-bottom:14px; }
-.stage {
-    font-size:16px; font-weight:800; letter-spacing:.08em;
-    text-transform:uppercase; opacity:.65; margin-bottom:12px;
-}
-.question { font-size:31px; line-height:1.2; font-weight:800; margin:12px 0 25px; }
-.big-stat { font-size:52px; font-weight:800; line-height:1; }
-.muted { opacity:.65; }
-.answer-card {
-    border:1px solid rgba(30,41,59,.12); border-radius:15px;
-    padding:14px 16px; margin:8px 0; background:#f8fafc;
-}
-.qr-wrap { text-align:center; }
-.small { font-size:14px; }
-[data-testid="stDataFrame"] { border-radius:14px; overflow:hidden; }
-button[kind="primary"] { font-weight:800; }
+#MainMenu, footer, header {visibility:hidden;}
+.block-container{padding:20px 28px 28px;max-width:1540px;}
+html,body,[class*="css"]{font-family:Inter,Arial,sans-serif;}
+.hero{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:18px;padding:20px 26px;margin-bottom:18px;box-shadow:0 10px 30px rgba(15,23,42,.14);}
+.hero h1{font-size:34px!important;margin:0!important;font-weight:800!important;letter-spacing:-.02em;}
+.hero p{font-size:15px!important;margin:5px 0 0!important;opacity:.78;}
+.panel{background:#fff;border:1px solid #dbe3ee;border-radius:18px;padding:24px;min-height:570px;box-shadow:0 6px 24px rgba(15,23,42,.06);}
+.dataset-title{font-size:23px;font-weight:800;color:#0f172a;margin-bottom:16px;}
+.stage{font-size:14px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin-bottom:10px;}
+.question{font-size:34px;line-height:1.18;font-weight:800;color:#0f172a;letter-spacing:-.02em;margin:10px 0 25px;}
+.big-stat{font-size:56px;font-weight:800;color:#0f172a;line-height:1;}
+.muted{font-size:13px;color:#64748b;font-weight:700;letter-spacing:.08em;}
+.answer-card{display:flex;justify-content:space-between;align-items:center;border:1px solid #dbe3ee;border-radius:12px;padding:15px 18px;margin:9px 0;background:#f8fafc;font-size:18px;}
+.qr-wrap{text-align:center;font-size:18px;color:#0f172a;}
+.statusbar{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px 16px;margin-bottom:14px;}
+.status-pill{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1d4ed8;}
+.joined{font-size:15px;font-weight:800;color:#0f172a;}
+[data-testid="stDataFrame"]{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
+[data-testid="stButton"] button{border-radius:11px!important;font-weight:800!important;min-height:48px;}
+[data-testid="stRadio"] label{font-size:18px!important;}
+[data-testid="stTextArea"] textarea{font-size:18px!important;border-radius:12px!important;}
+@media(max-width:900px){.block-container{padding:12px 12px 24px}.hero h1{font-size:26px!important}.panel{min-height:auto;padding:18px}.question{font-size:27px}.big-stat{font-size:46px}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -214,7 +205,7 @@ if role == "home":
     st.markdown("""
     <div class="hero">
       <h1>📊 Data Detective — Live Classroom Challenge</h1>
-      <p>Teacher controls the room • Students join by QR • 12 data_detective_pairs maximum</p>
+      <p>Teacher controls the room • Students join by QR • 12 12 pairs maximum</p>
     </div>
     """, unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -278,8 +269,8 @@ elif role == "teacher":
         st.markdown('<div class="panel">', unsafe_allow_html=True)
         if stage == "WAITING":
             st.markdown('<div class="stage">Waiting</div>', unsafe_allow_html=True)
-            st.markdown('<div class="question">Get your data_detective_pairs ready.<br>Scan the QR code to join.</div>', unsafe_allow_html=True)
-            st.info("Maximum: 12 data_detective_pairs • One device per pair")
+            st.markdown('<div class="question">Get your pairs ready.<br>Scan the QR code to join.</div>', unsafe_allow_html=True)
+            st.info("Maximum: 12 pairs • One device per pair")
         elif stage == "THINK":
             st.markdown('<div class="stage">Think — 30 seconds</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="question">{QUESTION}<br><br>Which visualization should we use?</div>', unsafe_allow_html=True)
@@ -329,9 +320,11 @@ elif role == "teacher":
                 st.session_state.demo_stage = "WAITING"
             st.rerun()
 
-    # Lightweight polling: only the teacher screen refreshes automatically.
-    time.sleep(1)
-    st.rerun()
+    # Auto-refresh without rebuilding the whole page manually.
+    try:
+        st.fragment(run_every=1)(lambda: None)
+    except Exception:
+        pass
 
 # ---------- Student ----------
 elif role == "student":
@@ -404,8 +397,10 @@ elif role == "student":
         st.markdown(f"### {CONCLUSION}")
         st.markdown("**Reason:** The data are ordered by month, so a line chart shows the trend over time.")
 
-    time.sleep(1)
-    st.rerun()
+    try:
+        st.fragment(run_every=1)(lambda: None)
+    except Exception:
+        pass
 else:
     st.query_params["role"] = "home"
     st.rerun()
