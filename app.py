@@ -1,185 +1,411 @@
-import streamlit as st
+import os
+import io
 import time
-from collections import Counter
+import uuid
+import socket
+from datetime import datetime, timezone
 
-st.set_page_config(page_title="Data Detective", page_icon="🔎", layout="wide")
+import streamlit as st
+import qrcode
 
-DATA = [("Jan", 75), ("Feb", 80), ("Mar", 78), ("Apr", 85), ("May", 90)]
-MAX_PAIRS = 12
+try:
+    from supabase import create_client
+except ImportError:
+    create_client = None
 
+st.set_page_config(
+    page_title="Data Detective | Live Classroom",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# ---------- Theme ----------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap');
-html,body,[class*="css"]{font-family:Inter,Arial,sans-serif}
-.stApp{background:#f5f8fb}
-.block-container{max-width:1600px;padding:18px 28px 30px}
-.top{display:flex;justify-content:space-between;align-items:center;background:#102a43;color:white;border-radius:22px;padding:20px 28px;margin-bottom:18px}
-.brand{font-size:clamp(1.5rem,2.7vw,3rem);font-weight:900}
-.round{font-size:clamp(.9rem,1.3vw,1.3rem);font-weight:800}
-.stagebar{display:flex;gap:10px;justify-content:center;margin-bottom:12px}
-.stagepill{padding:9px 18px;border-radius:999px;border:2px solid #d9e2ec;background:white;font-weight:900;color:#627d98}
-.active{background:#1f6feb;border-color:#1f6feb;color:white}
-.timer{font-size:clamp(2.8rem,6vw,6rem);font-weight:900;line-height:.9;text-align:center;color:#102a43;margin:8px 0 16px}
-.panel{background:white;border:2px solid #d9e2ec;border-radius:22px;padding:24px;height:100%;box-shadow:0 5px 18px rgba(16,42,67,.05)}
-.paneltitle{font-size:clamp(1rem,1.4vw,1.35rem);font-weight:900;letter-spacing:.05em;color:#627d98;text-transform:uppercase}
-.question{font-size:clamp(1.7rem,3.2vw,3.8rem);font-weight:900;line-height:1.08;color:#102a43;margin:18px 0 26px}
-.data-table{width:100%;border-collapse:collapse;font-size:clamp(1.1rem,1.7vw,1.7rem)}
-.data-table th{background:#edf3f8;text-align:left}
-.data-table th,.data-table td{padding:12px 16px;border-bottom:1px solid #d9e2ec}
-.join{font-size:clamp(1.4rem,2.3vw,2.4rem);font-weight:900;text-align:center;margin-top:20px;color:#102a43}
-.join small{display:block;font-size:.55em;color:#627d98;letter-spacing:.08em}
-.answer-card{border:3px solid #d9e2ec;border-radius:18px;padding:16px 20px;margin:10px 0;background:white}
-.answer-label{font-size:clamp(1.2rem,1.8vw,1.7rem);font-weight:900}
-.answer-count{float:right;font-size:clamp(1.4rem,2vw,2rem);font-weight:900;color:#1f6feb}
-.reason{font-size:clamp(1.1rem,1.6vw,1.5rem);line-height:1.4;color:#627d98}
-.reveal{background:#102a43;color:white;border-radius:24px;padding:28px;text-align:center}
-.reveal h1{font-size:clamp(3rem,7vw,7rem);margin:0;font-weight:900}
-.reveal p{font-size:clamp(1.2rem,2vw,2rem)}
-div.stButton>button{min-height:3.5rem;font-size:1.08rem;font-weight:900;border-radius:14px}
-textarea{font-size:1.1rem!important}
-@media(max-width:900px){.block-container{padding:10px 12px 24px}.panel{padding:18px}.stagebar{gap:5px}.stagepill{padding:8px 10px}}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap');
+html, body, [class*="css"] { font-family: Inter, sans-serif; }
+#MainMenu, footer, header { visibility:hidden; }
+.block-container { padding: 1rem 2rem 2rem; max-width: 1500px; }
+.hero {
+    border-radius: 22px; padding: 18px 24px; margin-bottom: 14px;
+    border: 1px solid rgba(30,41,59,.12); background: #ffffff;
+}
+.hero h1 { margin:0; font-size: 34px; font-weight:800; }
+.hero p { margin:5px 0 0; font-size:16px; opacity:.72; }
+.panel {
+    border:1px solid rgba(30,41,59,.13); border-radius:20px;
+    padding:22px; background:#fff; min-height:560px;
+    box-shadow:0 8px 28px rgba(15,23,42,.06);
+}
+.dataset-title { font-size:25px; font-weight:800; margin-bottom:14px; }
+.stage {
+    font-size:16px; font-weight:800; letter-spacing:.08em;
+    text-transform:uppercase; opacity:.65; margin-bottom:12px;
+}
+.question { font-size:31px; line-height:1.2; font-weight:800; margin:12px 0 25px; }
+.big-stat { font-size:52px; font-weight:800; line-height:1; }
+.muted { opacity:.65; }
+.answer-card {
+    border:1px solid rgba(30,41,59,.12); border-radius:15px;
+    padding:14px 16px; margin:8px 0; background:#f8fafc;
+}
+.qr-wrap { text-align:center; }
+.small { font-size:14px; }
+[data-testid="stDataFrame"] { border-radius:14px; overflow:hidden; }
+button[kind="primary"] { font-weight:800; }
 </style>
 """, unsafe_allow_html=True)
 
-def ensure():
-    defaults={"stage":"WAITING","started":None,"round":1,"joined":0,"answers":{},"shares":{}}
-    for k,v in defaults.items():
-        if k not in st.session_state: st.session_state[k]=v
-ensure()
+# ---------- Content from the teaching activity ----------
+DATA = {
+    "Jan": 75, "Feb": 80, "Mar": 78, "Apr": 85, "May": 90
+}
+OPTIONS = ["Line chart", "Bar chart", "Pie chart", "Histogram", "Scatter plot"]
+CORRECT = "Line chart"
+QUESTION = "How has attendance changed over the term?"
+CONCLUSION = "Attendance is trending upward overall, with a small dip in March before recovering."
 
-def elapsed():
-    return 0 if st.session_state.started is None else int(time.time()-st.session_state.started)
+# ---------- Supabase ----------
+def get_config():
+    url = os.getenv("SUPABASE_URL", "")
+    key = os.getenv("SUPABASE_KEY", "")
+    pin = os.getenv("TEACHER_PIN", "1234")
+    app_url = os.getenv("APP_URL", "")
+    try:
+        url = st.secrets.get("SUPABASE_URL", url)
+        key = st.secrets.get("SUPABASE_KEY", key)
+        pin = st.secrets.get("TEACHER_PIN", pin)
+        app_url = st.secrets.get("APP_URL", app_url)
+    except Exception:
+        pass
+    return url, key, pin, app_url
 
-def set_stage(stage):
-    st.session_state.stage=stage
-    st.session_state.started=time.time()
+SUPABASE_URL, SUPABASE_KEY, TEACHER_PIN, APP_URL = get_config()
 
-def reset_round():
-    st.session_state.stage="WAITING"
-    st.session_state.started=None
-    st.session_state.joined=0
-    st.session_state.answers={}
-    st.session_state.shares={}
-    st.session_state.round+=1
+@st.cache_resource
+def db():
+    if not create_client or not SUPABASE_URL or not SUPABASE_KEY:
+        return None
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def header():
-    st.markdown(f"""<div class="top"><div class="brand">🔎 DATA DETECTIVE</div>
-    <div class="round">THINK • PAIR • SHARE &nbsp; | &nbsp; ROUND {st.session_state.round}</div></div>""",unsafe_allow_html=True)
+sb = db()
 
-def stages():
-    cur=st.session_state.stage
-    html='<div class="stagebar">'
-    for s in ["THINK","PAIR","SHARE","REVEAL"]:
-        html+=f'<div class="stagepill {"active" if cur==s else ""}">{s}</div>'
-    st.markdown(html+"</div>",unsafe_allow_html=True)
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
 
-def dataset():
-    rows="".join(f"<tr><td>{m}</td><td><b>{v}</b></td></tr>" for m,v in DATA)
-    return f"""<div class="panel">
-    <div class="paneltitle">Dataset</div>
-    <div style="font-size:clamp(1.5rem,2.2vw,2.4rem);font-weight:900;margin:10px 0 14px">Monthly Attendance</div>
-    <table class="data-table"><tr><th>Month</th><th>Attendance</th></tr>{rows}</table>
-    <div class="join">👥 {st.session_state.joined} / {MAX_PAIRS}<small>PAIRS JOINED</small></div>
-    </div>"""
+def db_get_state():
+    if not sb:
+        return None
+    r = sb.table("class_state").select("*").eq("id", 1).limit(1).execute()
+    return r.data[0] if r.data else None
 
-def projector():
-    header(); stages()
-    stage=st.session_state.stage
-    if stage in ("THINK","PAIR"):
-        left=max(0,30-elapsed())
-        st.markdown(f'<div class="timer">{left:02d}</div>',unsafe_allow_html=True)
-        if left==0:
-            set_stage("PAIR" if stage=="THINK" else "SHARE")
-            st.rerun()
-    elif stage=="SHARE":
-        st.markdown('<div class="timer">SHARE</div>',unsafe_allow_html=True)
-
-    left,right=st.columns([.9,1.35],gap="large")
-    with left:
-        st.markdown(dataset(),unsafe_allow_html=True)
-    with right:
-        st.markdown('<div class="panel">',unsafe_allow_html=True)
-        if stage=="WAITING":
-            st.markdown('<div class="paneltitle">READY</div><div class="question">Scan the QR and join your pair.</div>',unsafe_allow_html=True)
-        elif stage=="THINK":
-            st.markdown('<div class="paneltitle">THINK</div><div class="question">Which visualization should we use?</div>',unsafe_allow_html=True)
-            c=Counter(st.session_state.answers.values())
-            for x in ["Line","Bar","Pie"]:
-                st.markdown(f'<div class="answer-card"><span class="answer-label">{x}</span><span class="answer-count">{c[x]}</span></div>',unsafe_allow_html=True)
-        elif stage=="PAIR":
-            st.markdown('<div class="paneltitle">PAIR</div><div class="question">Why did you choose that visualization?</div><div class="reason">Discuss with your partner. Prepare one clear reason to share.</div>',unsafe_allow_html=True)
-        elif stage=="SHARE":
-            st.markdown('<div class="paneltitle">SHARE</div><div class="question">Which chart? Why?</div>',unsafe_allow_html=True)
-            texts=list(st.session_state.shares.values())
-            if texts:
-                words=[]
-                for t in texts:
-                    words += [w.strip(".,!?;:()[]").lower() for w in t.split() if len(w.strip(".,!?;:()[]"))>2]
-                common=Counter(words).most_common(18)
-                st.markdown(" ".join(f"**{w}** ×{n}&nbsp;&nbsp;" for w,n in common),unsafe_allow_html=True)
-                st.markdown(f'<div class="reason"><b>{len(texts)}</b> pairs have shared.</div>',unsafe_allow_html=True)
-            else:
-                st.markdown('<div class="reason">Waiting for pair responses…</div>',unsafe_allow_html=True)
-        else:
-            st.markdown("""<div class="reveal"><div style="font-weight:900;letter-spacing:.12em">CORRECT VISUALIZATION</div>
-            <h1>LINE</h1><p><b>Why?</b> The data changes across an ordered sequence of months.</p>
-            <p><b>Interpretation:</b> Attendance trends upward overall, with a small dip in March before recovering.</p></div>""",unsafe_allow_html=True)
-        st.markdown('</div>',unsafe_allow_html=True)
-
-    st.markdown("---")
-    a,b,c,d,e=st.columns(5)
-    if a.button("▶ START THINK",use_container_width=True,disabled=stage not in ("WAITING","REVEAL")):
-        if stage=="REVEAL": reset_round()
-        set_stage("THINK"); st.rerun()
-    if b.button("▶ START PAIR",use_container_width=True,disabled=stage!="THINK"):
-        set_stage("PAIR"); st.rerun()
-    if c.button("▶ OPEN SHARE",use_container_width=True,disabled=stage!="PAIR"):
-        set_stage("SHARE"); st.rerun()
-    if d.button("★ REVEAL",use_container_width=True,disabled=stage!="SHARE"):
-        set_stage("REVEAL"); st.rerun()
-    if e.button("↺ NEW ROUND",use_container_width=True,disabled=stage!="REVEAL"):
-        reset_round(); st.rerun()
-
-def student():
-    header(); stages()
-    if "pair_no" not in st.session_state:
-        st.markdown('<div class="question">Choose your pair number</div>',unsafe_allow_html=True)
-        cols=st.columns(3)
-        for i in range(1,13):
-            with cols[(i-1)%3]:
-                if st.button(f"PAIR {i:02d}",use_container_width=True):
-                    if st.session_state.joined<MAX_PAIRS:
-                        st.session_state.pair_no=i
-                        st.session_state.joined+=1
-                        st.rerun()
+def db_update_state(stage=None, round_no=None):
+    if not sb:
         return
-    p=st.session_state.pair_no
-    stage=st.session_state.stage
-    st.markdown(f'<div class="join">PAIR {p:02d}<small>YOUR TEAM</small></div>',unsafe_allow_html=True)
-    if stage=="WAITING":
-        st.info("Waiting for the teacher to start THINK.")
-    elif stage=="THINK":
-        rem=max(0,30-elapsed())
-        st.markdown(f'<div class="timer">{rem:02d}</div>',unsafe_allow_html=True)
-        st.markdown('<div class="question">Which visualization should we use?</div>',unsafe_allow_html=True)
-        choice=st.radio("Choose",["Line","Bar","Pie"],label_visibility="collapsed")
-        if st.button("LOCK MY ANSWER",use_container_width=True):
-            st.session_state.answers[p]=choice; st.rerun()
-        if p in st.session_state.answers: st.success("Answer locked.")
-    elif stage=="PAIR":
-        st.markdown('<div class="question">Discuss your choice.</div>',unsafe_allow_html=True)
-        st.markdown('<div class="reason">Prepare one clear reason to share.</div>',unsafe_allow_html=True)
-    elif stage=="SHARE":
-        st.markdown('<div class="question">Which chart? Why?</div>',unsafe_allow_html=True)
-        if p in st.session_state.shares: st.success("✓ Shared with teacher.")
-        else:
-            txt=st.text_area("Final answer",placeholder="Line chart — because attendance changes month by month.",height=140)
-            if st.button("SUBMIT SHARE",use_container_width=True) and txt.strip():
-                st.session_state.shares[p]=txt.strip(); st.rerun()
-    else:
-        st.markdown('<div class="reveal"><div>ANSWER</div><h1>LINE</h1><p>Attendance trends upward overall, with a small dip in March.</p></div>',unsafe_allow_html=True)
+    payload = {"updated_at": now_iso()}
+    if stage is not None:
+        payload["stage"] = stage
+        payload["stage_started_at"] = now_iso()
+    if round_no is not None:
+        payload["round_no"] = round_no
+    sb.table("class_state").update(payload).eq("id", 1).execute()
 
-role=st.query_params.get("role","teacher")
-if isinstance(role,list): role=role[0]
-if role=="student": student()
-else: projector()
+def db_get_pairs():
+    if not sb:
+        return []
+    r = sb.table("pairs").select("*").eq("round_no", int(db_get_state()["round_no"])).order("pair_no").execute()
+    return r.data or []
+
+def db_join_pair():
+    if not sb:
+        return None, "Database is not configured."
+    state = db_get_state()
+    round_no = int(state["round_no"])
+    existing = sb.table("pairs").select("*").eq("round_no", round_no).eq("session_token", st.session_state.token).limit(1).execute()
+    if existing.data:
+        return existing.data[0], None
+
+    # Try each free slot. Verification after update prevents two clients
+    # from believing they own the same slot.
+    for n in range(1, 13):
+        free = sb.table("pairs").select("*").eq("round_no", round_no).eq("pair_no", n).is_("session_token", "null").limit(1).execute()
+        if not free.data:
+            continue
+        sb.table("pairs").update({
+            "session_token": st.session_state.token,
+            "joined_at": now_iso(),
+        }).eq("round_no", round_no).eq("pair_no", n).is_("session_token", "null").execute()
+        check = sb.table("pairs").select("*").eq("round_no", round_no).eq("pair_no", n).limit(1).execute()
+        if check.data and check.data[0].get("session_token") == st.session_state.token:
+            return check.data[0], None
+    return None, "All 12 pairs are already occupied."
+
+def db_submit_think(pair_no, answer):
+    state = db_get_state()
+    sb.table("pairs").update({
+        "think_answer": answer,
+        "think_submitted_at": now_iso()
+    }).eq("round_no", int(state["round_no"])).eq("pair_no", pair_no).execute()
+
+def db_submit_share(pair_no, text):
+    state = db_get_state()
+    sb.table("pairs").update({
+        "share_text": text.strip(),
+        "share_submitted_at": now_iso()
+    }).eq("round_no", int(state["round_no"])).eq("pair_no", pair_no).execute()
+
+def db_reset_round():
+    state = db_get_state()
+    new_round = int(state["round_no"]) + 1
+    sb.table("pairs").delete().eq("round_no", new_round).execute()
+    rows = [{"round_no": new_round, "pair_no": n} for n in range(1, 13)]
+    sb.table("pairs").insert(rows).execute()
+    sb.table("class_state").update({
+        "round_no": new_round, "stage": "WAITING",
+        "stage_started_at": now_iso(), "updated_at": now_iso()
+    }).eq("id", 1).execute()
+
+def local_demo_state():
+    return {"id": 1, "stage": st.session_state.get("demo_stage", "WAITING"), "round_no": 1}
+
+# ---------- Helpers ----------
+def join_url():
+    if APP_URL:
+        return APP_URL.rstrip("/") + "/?role=student"
+    try:
+        host = st.context.headers.get("Host")
+        if host:
+            return ("https://" if "localhost" not in host else "http://") + host + "/?role=student"
+    except Exception:
+        pass
+    return ""
+
+@st.cache_data
+def make_qr(url):
+    img = qrcode.make(url)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+def answer_counts(pairs):
+    counts = {x: 0 for x in OPTIONS}
+    for p in pairs:
+        a = p.get("think_answer")
+        if a in counts:
+            counts[a] += 1
+    return counts
+
+def stage_label(stage):
+    return {"WAITING":"WAITING ROOM", "THINK":"THINK", "PAIR":"PAIR", "SHARE":"SHARE", "REVEAL":"REVEAL"}.get(stage, stage)
+
+# ---------- Session ----------
+if "token" not in st.session_state:
+    st.session_state.token = str(uuid.uuid4())
+if "pair" not in st.session_state:
+    st.session_state.pair = None
+
+role = st.query_params.get("role", "home")
+if isinstance(role, list):
+    role = role[0]
+
+# ---------- Home ----------
+if role == "home":
+    st.markdown("""
+    <div class="hero">
+      <h1>📊 Data Detective — Live Classroom Challenge</h1>
+      <p>Teacher controls the room • Students join by QR • 12 pairs maximum</p>
+    </div>
+    """, unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("### 👨‍🏫 Teacher")
+        if st.button("Open Teacher / Projector", type="primary", use_container_width=True):
+            st.query_params["role"] = "teacher"
+            st.rerun()
+    with c2:
+        st.markdown("### 👩‍🎓 Student")
+        if st.button("Join as Student", use_container_width=True):
+            st.query_params["role"] = "student"
+            st.rerun()
+    if not sb:
+        st.warning("Demo mode: Supabase is not configured. Configure the included secrets before using multiple phones.")
+
+# ---------- Teacher ----------
+elif role == "teacher":
+    state = db_get_state() if sb else local_demo_state()
+    if not state:
+        st.error("Supabase is configured but the database schema has not been initialized.")
+        st.stop()
+
+    stage = state["stage"]
+    pairs = db_get_pairs() if sb else []
+    joined = sum(1 for p in pairs if p.get("session_token"))
+
+    st.markdown(f"""
+    <div class="hero">
+      <h1>📊 DATA DETECTIVE</h1>
+      <p>Round {state["round_no"]} • {stage_label(stage)}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    left, right = st.columns([0.9, 1.1], gap="large")
+
+    with left:
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown('<div class="dataset-title">📋 DATASET — MONTHLY ATTENDANCE</div>', unsafe_allow_html=True)
+        import pandas as pd
+        st.dataframe(pd.DataFrame({"Month": list(DATA), "Attendance (%)": list(DATA.values())}),
+                     hide_index=True, use_container_width=True)
+        st.markdown(f"""
+        <div style="margin-top:30px">
+          <div class="muted">PAIRS JOINED</div>
+          <div class="big-stat">{joined} <span style="font-size:25px">/ 12</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if stage == "WAITING":
+            url = join_url()
+            if url:
+                st.markdown('<div class="qr-wrap" style="margin-top:20px"><b>SCAN TO JOIN</b></div>', unsafe_allow_html=True)
+                st.image(make_qr(url), width=230)
+                st.caption("Students can also use the Student button on this page.")
+            else:
+                st.info("Set APP_URL in secrets to display a QR code.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with right:
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        if stage == "WAITING":
+            st.markdown('<div class="stage">Waiting</div>', unsafe_allow_html=True)
+            st.markdown('<div class="question">Get your pairs ready.<br>Scan the QR code to join.</div>', unsafe_allow_html=True)
+            st.info("Maximum: 12 pairs • One device per pair")
+        elif stage == "THINK":
+            st.markdown('<div class="stage">Think — 30 seconds</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="question">{QUESTION}<br><br>Which visualization should we use?</div>', unsafe_allow_html=True)
+            counts = answer_counts(pairs)
+            for k, v in counts.items():
+                st.markdown(f'<div class="answer-card"><b>{k}</b><span style="float:right">{v}</span></div>', unsafe_allow_html=True)
+        elif stage == "PAIR":
+            st.markdown('<div class="stage">Pair — 30 seconds</div>', unsafe_allow_html=True)
+            st.markdown('<div class="question">Discuss with your partner:<br>Why is this visualization the best choice?</div>', unsafe_allow_html=True)
+            counts = answer_counts(pairs)
+            st.markdown(f"**Responses received:** {sum(counts.values())} / {joined}")
+        elif stage == "SHARE":
+            st.markdown('<div class="stage">Share</div>', unsafe_allow_html=True)
+            st.markdown('<div class="question">Give your final reasoning.<br>What conclusion can we draw?</div>', unsafe_allow_html=True)
+            texts = [p.get("share_text") for p in pairs if p.get("share_text")]
+            st.markdown(f"**Responses received:** {len(texts)} / {joined}")
+            for t in texts[-8:]:
+                st.markdown(f'<div class="answer-card">{t}</div>', unsafe_allow_html=True)
+        elif stage == "REVEAL":
+            st.markdown('<div class="stage">Reveal</div>', unsafe_allow_html=True)
+            st.markdown('<div class="question">✓ Correct visualization: LINE CHART</div>', unsafe_allow_html=True)
+            st.success(CONCLUSION)
+            st.markdown("**Why?** A line chart clearly shows change over time.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.divider()
+    b1,b2,b3,b4,b5 = st.columns(5)
+    actions = [
+        ("▶ START THINK", "THINK"),
+        ("▶ START PAIR", "PAIR"),
+        ("▶ OPEN SHARE", "SHARE"),
+        ("✓ REVEAL", "REVEAL"),
+    ]
+    for col, (label, target) in zip([b1,b2,b3,b4], actions):
+        with col:
+            if st.button(label, type="primary" if target == "REVEAL" else "secondary", use_container_width=True):
+                if sb:
+                    db_update_state(stage=target)
+                else:
+                    st.session_state.demo_stage = target
+                st.rerun()
+    with b5:
+        if st.button("↻ NEW ROUND", use_container_width=True):
+            if sb:
+                db_reset_round()
+            else:
+                st.session_state.demo_stage = "WAITING"
+            st.rerun()
+
+    # Lightweight polling: only the teacher screen refreshes automatically.
+    time.sleep(1)
+    st.rerun()
+
+# ---------- Student ----------
+elif role == "student":
+    state = db_get_state() if sb else local_demo_state()
+    if not state:
+        st.error("Database is not initialized.")
+        st.stop()
+
+    st.markdown("""
+    <div class="hero">
+      <h1>📊 DATA DETECTIVE</h1>
+      <p>One device per pair</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if not sb:
+        st.warning("Student demo mode. Configure Supabase for real multi-device classroom use.")
+        st.stop()
+
+    if not st.session_state.pair:
+        st.markdown("### Join the classroom")
+        st.caption("Enter the teacher PIN to claim one of the 12 pair slots.")
+        pin = st.text_input("Teacher PIN", type="password", max_chars=20)
+        if st.button("JOIN CLASS", type="primary", use_container_width=True):
+            if pin != TEACHER_PIN:
+                st.error("Incorrect PIN.")
+            else:
+                pair, err = db_join_pair()
+                if err:
+                    st.error(err)
+                else:
+                    st.session_state.pair = pair["pair_no"]
+                    st.rerun()
+        st.stop()
+
+    pair_no = st.session_state.pair
+    stage = state["stage"]
+
+    st.markdown(f"### Pair {pair_no}  •  {stage_label(stage)}")
+
+    if stage == "WAITING":
+        st.info("Wait for the teacher to start the THINK stage.")
+    elif stage == "THINK":
+        st.markdown(f"## {QUESTION}")
+        st.markdown("### Which visualization should we use?")
+        answer = st.radio("Choose one", OPTIONS, index=None)
+        if st.button("SUBMIT THINK ANSWER", type="primary", use_container_width=True):
+            if answer:
+                db_submit_think(pair_no, answer)
+                st.success("Answer submitted. Wait for the next stage.")
+            else:
+                st.warning("Choose an option first.")
+    elif stage == "PAIR":
+        st.markdown("## Discuss with your partner")
+        st.markdown("### Why is your chosen visualization the best choice?")
+        st.info("Do not submit yet. Discuss first.")
+    elif stage == "SHARE":
+        st.markdown("## Final answer")
+        st.markdown("### What conclusion can we draw?")
+        text = st.text_area("Write your pair's answer", height=160, max_chars=500)
+        if st.button("SUBMIT FINAL ANSWER", type="primary", use_container_width=True):
+            if text.strip():
+                db_submit_share(pair_no, text)
+                st.success("Final answer submitted.")
+            else:
+                st.warning("Please enter your answer.")
+    elif stage == "REVEAL":
+        st.markdown("## ✓ Correct answer")
+        st.success("LINE CHART")
+        st.markdown(f"### {CONCLUSION}")
+        st.markdown("**Reason:** The data are ordered by month, so a line chart shows the trend over time.")
+
+    time.sleep(1)
+    st.rerun()
+else:
+    st.query_params["role"] = "home"
+    st.rerun()
