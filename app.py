@@ -288,10 +288,15 @@ def wordcloud_image(texts):
 
 
 def qr_image(url):
+    # Return PNG bytes instead of qrcode's wrapper object.
+    # This is reliably accepted by Streamlit Cloud's image renderer.
     qr = qrcode.QRCode(box_size=9, border=2)
     qr.add_data(url)
     qr.make(fit=True)
-    return qr.make_image()
+    img = qr.make_image().convert("RGB")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
 
 
 @st.fragment(run_every="1s")
