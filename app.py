@@ -258,14 +258,13 @@ def inject_css(projector=False, student=False):
           }
         </style>
         """
-    st.markdown(base, unsafe_allow_html=True)
+    st.html(base)
 
 
 def hero(title, subtitle, eyebrow="DATA DETECTIVE"):
-    st.markdown(
+    st.html(
         f'<div class="hero"><div class="eyebrow">{eyebrow}</div>'
-        f'<h1>{title}</h1><p>{subtitle}</p></div>',
-        unsafe_allow_html=True,
+        f'<h1>{title}</h1><p>{subtitle}</p></div>'
     )
 
 
@@ -295,6 +294,7 @@ def qr_image(url):
     return qr.make_image()
 
 
+@st.fragment(run_every="1s")
 def projector_dashboard():
     inject_css(projector=True)
     hero(
@@ -437,12 +437,6 @@ def projector_dashboard():
             "The teacher view is intentionally oversized for projection and last-bench visibility."
         )
 
-    @st.fragment(run_every=1)
-    def live_refresh():
-        # This fragment keeps the dashboard live without repeatedly rebuilding the entire app.
-        st.empty()
-
-    live_refresh()
 
 
 def teacher_login():
@@ -457,6 +451,7 @@ def teacher_login():
             st.error("Incorrect PIN.")
 
 
+@st.fragment(run_every="1s")
 def student_view():
     inject_css(student=True)
     hero("YOUR PAIR • YOUR ANSWER", "One device per pair. Choose together, then submit once.")
@@ -577,11 +572,6 @@ def student_view():
         chart_df = pd.DataFrame({"Attendance": list(ATTENDANCE.values())}, index=list(ATTENDANCE.keys()))
         st.line_chart(chart_df, height=330)
 
-    @st.fragment(run_every=1)
-    def student_refresh():
-        st.empty()
-
-    student_refresh()
 
 
 def app():
