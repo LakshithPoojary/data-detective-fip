@@ -1,0 +1,2621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Data Visualization Crossword</title>
+
+<style>
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+
+    overflow: hidden;
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+}
+
+
+/* =========================================================
+   MAIN APP
+========================================================= */
+
+.app {
+    width: 100vw;
+    height: 100vh;
+    height: 100svh;
+
+    display: flex;
+    flex-direction: column;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eaf7ff 0%,
+            #f2edff 100%
+        );
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+
+    height: 9vh;
+    min-height: 58px;
+
+    padding: 0 2vw;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background:
+        linear-gradient(
+            135deg,
+            #123b63,
+            #176b87,
+            #2188a8
+        );
+
+    color: white;
+
+    box-shadow:
+        0 4px 15px
+        rgba(18,59,99,0.25);
+
+    z-index: 10;
+}
+
+
+.header-title h1 {
+
+    margin: 0;
+
+    font-size:
+        clamp(
+            26px,
+            2.35vw,
+            44px
+        );
+
+    line-height: 1;
+
+    font-weight: 900;
+}
+
+
+.header-title p {
+
+    margin:
+        5px 0 0;
+
+    font-size:
+        clamp(
+            10px,
+            0.85vw,
+            16px
+        );
+
+    opacity:
+        0.88;
+}
+
+
+.header-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+
+.score-box {
+
+    padding:
+        9px 18px;
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.16
+        );
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            0.3
+        );
+
+    font-size:
+        clamp(
+            15px,
+            1.2vw,
+            23px
+        );
+
+    font-weight:
+        900;
+}
+
+
+.fullscreen-btn {
+
+    border:
+        none;
+
+    border-radius:
+        10px;
+
+    padding:
+        10px 14px;
+
+    background:
+        white;
+
+    color:
+        #123b63;
+
+    font-size:
+        clamp(
+            11px,
+            0.85vw,
+            16px
+        );
+
+    font-weight:
+        900;
+
+    cursor:
+        pointer;
+}
+
+
+/* =========================================================
+   MAIN TWO-COLUMN LAYOUT
+
+   LEFT  = 50%
+   RIGHT = 50%
+========================================================= */
+
+.main {
+
+    flex: 1;
+
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        50% 50%;
+}
+
+
+/* =========================================================
+   LEFT QUESTION PANEL
+========================================================= */
+
+.questions-panel {
+
+    min-height: 0;
+
+    margin:
+        1vh 0.4vw 1vh 0.8vw;
+
+    padding:
+        1vh 0.8vw;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            0.97
+        );
+
+    border-radius:
+        18px;
+
+    box-shadow:
+        0 6px 22px
+        rgba(
+            20,
+            67,
+            100,
+            0.13
+        );
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+}
+
+
+/* =========================================================
+   QUESTION HEADER
+========================================================= */
+
+.questions-heading {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    padding-bottom:
+        6px;
+
+    margin-bottom:
+        7px;
+
+    border-bottom:
+        3px solid #dceaf5;
+}
+
+
+.questions-heading h2 {
+
+    margin:
+        0;
+
+    color:
+        #164b70;
+
+    font-size:
+        clamp(
+            20px,
+            1.55vw,
+            30px
+        );
+
+    font-weight:
+        900;
+}
+
+
+.question-count {
+
+    padding:
+        5px 10px;
+
+    border-radius:
+        8px;
+
+    background:
+        #e2f3ff;
+
+    color:
+        #176b87;
+
+    font-size:
+        clamp(
+            10px,
+            0.8vw,
+            15px
+        );
+
+    font-weight:
+        900;
+}
+
+
+/* =========================================================
+   QUESTION LIST
+========================================================= */
+
+.question-list {
+
+    flex:
+        1;
+
+    min-height:
+        0;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    grid-template-rows:
+        repeat(
+            4,
+            minmax(
+                0,
+                1fr
+            )
+        );
+
+    gap:
+        8px;
+}
+
+
+/* =========================================================
+   QUESTION CARD
+========================================================= */
+
+.question {
+
+    min-height:
+        0;
+
+    display:
+        flex;
+
+    gap:
+        8px;
+
+    padding:
+        7px 8px;
+
+    border:
+        2px solid #d8e8f2;
+
+    border-radius:
+        11px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #f1f8fc
+        );
+
+    overflow:
+        hidden;
+}
+
+
+/* =========================================================
+   QUESTION NUMBER
+========================================================= */
+
+.q-number {
+
+    flex-shrink:
+        0;
+
+    width:
+        31px;
+
+    height:
+        31px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #176b87,
+            #2385a8
+        );
+
+    color:
+        white;
+
+    font-size:
+        14px;
+
+    font-weight:
+        900;
+}
+
+
+/* =========================================================
+   QUESTION BODY
+========================================================= */
+
+.q-content {
+
+    min-width:
+        0;
+}
+
+
+.q-text {
+
+    color:
+        #263d50;
+
+    font-size:
+        clamp(
+            12px,
+            0.91vw,
+            18px
+        );
+
+    line-height:
+        1.22;
+
+    font-weight:
+        650;
+}
+
+
+.q-text b {
+
+    color:
+        #176b87;
+}
+
+
+.hint {
+
+    margin-top:
+        4px;
+
+    color:
+        #607789;
+
+    font-size:
+        clamp(
+            9px,
+            0.72vw,
+            14px
+        );
+
+    font-weight:
+        800;
+}
+
+
+.hint strong {
+
+    color:
+        #c45c17;
+
+    letter-spacing:
+        2px;
+}
+
+
+/* =========================================================
+   DIRECTION BADGE
+========================================================= */
+
+.direction {
+
+    display:
+        inline-block;
+
+    margin-left:
+        4px;
+
+    padding:
+        2px 7px;
+
+    border-radius:
+        6px;
+
+    background:
+        #dff2ff;
+
+    color:
+        #176b87;
+
+    font-size:
+        10px;
+
+    font-weight:
+        900;
+}
+
+
+/* =========================================================
+   RIGHT BLUE CROSSWORD AREA
+
+   THE ENTIRE RIGHT AREA IS BLUE.
+========================================================= */
+
+.crossword-panel {
+
+    min-height:
+        0;
+
+    margin:
+        1vh 0.8vw 1vh 0.4vw;
+
+    padding:
+        0.5vh 0.35vw;
+
+    border-radius:
+        18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #104369,
+            #145778,
+            #176a86
+        );
+
+    box-shadow:
+        0 7px 25px
+        rgba(
+            18,
+            59,
+            99,
+            0.30
+        );
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        stretch;
+
+    overflow:
+        hidden;
+}
+
+
+/* =========================================================
+   CROSSWORD TITLE
+========================================================= */
+
+.crossword-title {
+
+    width:
+        100%;
+
+    height:
+        6%;
+
+    min-height:
+        30px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    color:
+        white;
+
+    font-size:
+        clamp(
+            21px,
+            1.65vw,
+            32px
+        );
+
+    font-weight:
+        900;
+
+    letter-spacing:
+        1px;
+}
+
+
+/* =========================================================
+   GRID AREA
+
+   VERY LARGE
+========================================================= */
+
+.grid-area {
+
+    width:
+        100%;
+
+    height:
+        88%;
+
+    min-height:
+        0;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+}
+
+
+/* =========================================================
+   CROSSWORD GRID
+
+   WIDE RECTANGULAR GRID
+
+   NO aspect-ratio.
+   It uses almost ALL of the RIGHT WIDTH.
+========================================================= */
+
+.grid {
+
+    width:
+        99.5%;
+
+    height:
+        99%;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            14,
+            1fr
+        );
+
+    grid-template-rows:
+        repeat(
+            12,
+            1fr
+        );
+
+    gap:
+        2px;
+
+    padding:
+        4px;
+
+    background:
+        #0b304c;
+
+    border:
+        3px solid
+        #092943;
+
+    border-radius:
+        7px;
+
+    box-shadow:
+        inset 0 0 0 1px
+        rgba(
+            255,
+            255,
+            255,
+            0.08
+        );
+}
+
+
+/* =========================================================
+   CELL
+========================================================= */
+
+.cell {
+
+    position:
+        relative;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    background:
+        #ffffff;
+
+    border:
+        2px solid
+        #b9d3e4;
+}
+
+
+/* =========================================================
+   BLOCK CELL
+========================================================= */
+
+.cell.block {
+
+    background:
+        #185475;
+
+    border:
+        1px solid
+        #185475;
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.cell input {
+
+    width:
+        100%;
+
+    height:
+        100%;
+
+    margin:
+        0;
+
+    padding:
+        0;
+
+    border:
+        none;
+
+    outline:
+        none;
+
+    background:
+        transparent;
+
+    text-align:
+        center;
+
+    text-transform:
+        uppercase;
+
+    color:
+        #123b63;
+
+    font-size:
+        clamp(
+            15px,
+            1.65vw,
+            34px
+        );
+
+    font-weight:
+        900;
+}
+
+
+/* =========================================================
+   FOCUS
+========================================================= */
+
+.cell input:focus {
+
+    background:
+        #dff4ff;
+
+    box-shadow:
+        inset 0 0 0 3px
+        #4bb9e8;
+}
+
+
+/* =========================================================
+   CELL NUMBER
+========================================================= */
+
+.cell-number {
+
+    position:
+        absolute;
+
+    top:
+        2px;
+
+    left:
+        4px;
+
+    color:
+        #3e6379;
+
+    font-size:
+        clamp(
+            7px,
+            0.5vw,
+            11px
+        );
+
+    line-height:
+        1;
+
+    font-weight:
+        900;
+
+    pointer-events:
+        none;
+}
+
+
+/* =========================================================
+   CORRECT = LIGHT GREEN
+========================================================= */
+
+.correct input {
+
+    background:
+        #c6efce !important;
+
+    color:
+        #166534 !important;
+}
+
+
+/* =========================================================
+   WRONG = LIGHT RED
+========================================================= */
+
+.wrong input {
+
+    background:
+        #ffc7ce !important;
+
+    color:
+        #991b1b !important;
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+.message {
+
+    width:
+        100%;
+
+    height:
+        2%;
+
+    min-height:
+        18px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    color:
+        white;
+
+    font-size:
+        clamp(
+            10px,
+            0.78vw,
+            15px
+        );
+
+    font-weight:
+        900;
+}
+
+
+/* =========================================================
+   BUTTON AREA
+
+   STILL INSIDE BLUE
+========================================================= */
+
+.controls {
+
+    width:
+        100%;
+
+    height:
+        4%;
+
+    min-height:
+        34px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        12px;
+}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.btn {
+
+    border:
+        none;
+
+    border-radius:
+        10px;
+
+    padding:
+        6px 22px;
+
+    font-size:
+        clamp(
+            11px,
+            0.85vw,
+            17px
+        );
+
+    font-weight:
+        900;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.2s;
+}
+
+
+.btn:hover {
+
+    transform:
+        translateY(-2px);
+
+    filter:
+        brightness(1.05);
+}
+
+
+/* =========================================================
+   CHECK
+========================================================= */
+
+.check {
+
+    background:
+        #19a1bd;
+
+    color:
+        white;
+
+    box-shadow:
+        0 3px 8px
+        rgba(
+            0,
+            0,
+            0,
+            0.20
+        );
+}
+
+
+/* =========================================================
+   CLEAR
+========================================================= */
+
+.clear {
+
+    background:
+        #dcecf6;
+
+    color:
+        #174a73;
+}
+
+
+/* =========================================================
+   REVEAL
+========================================================= */
+
+.reveal {
+
+    background:
+        #e47b00;
+
+    color:
+        white;
+
+    box-shadow:
+        0 3px 8px
+        rgba(
+            0,
+            0,
+            0,
+            0.20
+        );
+}
+
+
+/* =========================================================
+   SHORT PROJECTOR
+========================================================= */
+
+@media
+(max-height: 700px)
+and
+(min-width: 901px) {
+
+    .header {
+
+        height:
+            8vh;
+
+        min-height:
+            50px;
+    }
+
+
+    .questions-panel,
+    .crossword-panel {
+
+        margin-top:
+            0.5vh;
+
+        margin-bottom:
+            0.5vh;
+    }
+
+
+    .questions-heading {
+
+        padding-bottom:
+            3px;
+
+        margin-bottom:
+            4px;
+    }
+
+
+    .question {
+
+        padding:
+            4px 6px;
+    }
+
+
+    .q-number {
+
+        width:
+            25px;
+
+        height:
+            25px;
+    }
+
+
+    .q-text {
+
+        line-height:
+            1.08;
+    }
+
+
+    .hint {
+
+        margin-top:
+            1px;
+    }
+
+
+    .crossword-title {
+
+        height:
+            5%;
+
+        min-height:
+            24px;
+    }
+
+
+    .grid-area {
+
+        height:
+            90%;
+    }
+
+
+    .grid {
+
+        width:
+            99.5%;
+
+        height:
+            99%;
+    }
+
+
+    .message {
+
+        height:
+            1.5%;
+    }
+
+
+    .controls {
+
+        height:
+            3.5%;
+    }
+
+
+    .btn {
+
+        padding:
+            4px 16px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL SCREEN
+========================================================= */
+
+@media
+(max-width: 900px) {
+
+    html,
+    body {
+
+        overflow:
+            auto;
+    }
+
+
+    .app {
+
+        height:
+            auto;
+
+        min-height:
+            100vh;
+    }
+
+
+    .main {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .question-list {
+
+        grid-template-columns:
+            1fr;
+
+        grid-template-rows:
+            auto;
+    }
+
+
+    .question {
+
+        min-height:
+            90px;
+    }
+
+
+    .crossword-panel {
+
+        min-height:
+            650px;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<!-- =======================================================
+     HEADER
+======================================================= -->
+
+<header class="header">
+
+
+    <div class="header-title">
+
+        <h1>
+            Data Visualization Crossword
+        </h1>
+
+        <p>
+            Think • Fill • Check
+        </p>
+
+    </div>
+
+
+    <div class="header-right">
+
+
+        <div class="score-box">
+
+            Score:
+            <span id="score">0</span>
+            / 8
+
+        </div>
+
+
+        <button
+            class="fullscreen-btn"
+            onclick="toggleFullscreen()">
+
+            ⛶ FULL SCREEN
+
+        </button>
+
+    </div>
+
+</header>
+
+
+
+<!-- =======================================================
+     MAIN
+======================================================= -->
+
+<main class="main">
+
+
+<!-- =======================================================
+     LEFT — QUESTIONS
+======================================================= -->
+
+<section class="questions-panel">
+
+
+    <div class="questions-heading">
+
+        <h2>
+            🧠 Questions
+        </h2>
+
+        <div class="question-count">
+            8 Questions
+        </div>
+
+    </div>
+
+
+    <div class="question-list">
+
+
+        <!-- =================================================
+             Q1 — DOWN
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                1
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        ↓ DOWN
+                    </span>
+
+                   
+                    <b> Horizontal bar graph created using ____function</b>.
+
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>B _ _ _</strong>
+                    &nbsp; (4 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             Q2 — DOWN
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                2
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        ↓ DOWN
+                    </span>
+
+                    
+                    <b>Bar Gaphs without any space leads what kind of Graph :</b>.
+                   
+
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>H _ _ _ _ _ _ _ _</strong>
+                    &nbsp; (9 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             Q3 — ACROSS
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                3
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        → ACROSS
+                    </span>
+
+                   <b> A scatter graph can help you discover
+                    the ________ between two variables.</b>
+
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>R _ _ _ _ _ _ _</strong>
+                    &nbsp; (8 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             Q4 — ACROSS
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                4
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        → ACROSS
+                    </span>
+
+                    <b>Your marks are recorded for Test 1,
+                    Test 2, Test 3 and Test 4.
+                    Which plot can show how the values
+                    move from one test to the next?
+</b>
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>L _ _ _</strong>
+                    &nbsp; (4 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             Q5 — DOWN
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                5
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        ↓ DOWN
+                    </span>
+
+                    You find this line:
+                    <b>import matplotlib.pyplot as plt</b>.
+                    Which programming language is being used?
+
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>P _ _ _ _ _</strong>
+                    &nbsp; (6 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             Q6 — DOWN
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                6
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        ↓ DOWN
+                    </span>
+
+                   <b> You receive 500 student records arranged
+                    in rows and columns. Which beginner tool
+                    without code can be used for visualization?</b>
+
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>E _ _ _ _</strong>
+                    &nbsp; (5 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             Q7 — DOWN
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                7
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        ↓ DOWN
+                    </span>
+
+                    If the complete data represents
+                    <b>100%</b>, which 3-letter chart
+                    can divide the whole into percentage parts?
+
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>P _ _</strong>
+                    &nbsp; (3 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             Q8 — ACROSS
+        ================================================== -->
+
+        <div class="question">
+
+            <div class="q-number">
+                8
+            </div>
+
+            <div class="q-content">
+
+                <div class="q-text">
+
+                    <span class="direction">
+                        → ACROSS
+                    </span>
+
+                    <b>You have numbers in Python but need to
+                    turn them into a graph. Which library
+                    is used in today's class? </b>
+
+                </div>
+
+                <div class="hint">
+
+                    Hint:
+                    <strong>M _ _ _ _ _ _ _ _ _</strong>
+                    &nbsp; (10 letters)
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =======================================================
+     RIGHT — CROSSWORD
+======================================================= -->
+
+<section class="crossword-panel">
+
+
+    <div class="crossword-title">
+
+        🔤 CROSSWORD
+
+    </div>
+
+
+    <div class="grid-area">
+
+        <div
+            id="grid"
+            class="grid">
+        </div>
+
+    </div>
+
+
+    <div
+        id="message"
+        class="message">
+    </div>
+
+
+    <div class="controls">
+
+
+        <button
+            class="btn check"
+            onclick="checkAnswers()">
+
+            ✓ CHECK
+
+        </button>
+
+
+        <button
+            class="btn clear"
+            onclick="clearAnswers()">
+
+            ↺ CLEAR
+
+        </button>
+
+
+        <button
+            class="btn reveal"
+            onclick="revealAnswers()">
+
+            💡 REVEAL
+
+        </button>
+
+
+    </div>
+
+
+</section>
+
+</main>
+
+
+
+<script>
+
+/* =========================================================
+   CROSSWORD
+
+   GRID:
+   12 ROWS × 14 COLUMNS
+
+   ---------------------------------------------------------
+
+   ACROSS:
+   3 → RELATION
+   4 → LINE
+   8 → MATPLOTLIB
+
+   DOWN:
+   1 ↓ BARH
+   2 ↓ HISTOGRAM
+   5 ↓ PYTHON
+   6 ↓ EXCEL
+   7 ↓ PIE
+
+========================================================= */
+
+const ROWS = 12;
+const COLS = 14;
+
+
+/* =========================================================
+   WORD POSITIONS
+
+   These positions are intentionally arranged so that
+   the answers cross one another.
+========================================================= */
+
+const words = {
+
+    /* ---------------------------------------------
+       Q1 — BARH
+       DOWN
+    --------------------------------------------- */
+
+    1: {
+
+        answer: "BARH",
+
+        row: 4,
+        col: 11,
+
+        direction: "D"
+
+    },
+
+
+    /* ---------------------------------------------
+       Q2 — HISTOGRAM
+       DOWN
+    --------------------------------------------- */
+
+    2: {
+
+        answer: "HISTOGRAM",
+
+        row: 3,
+        col: 10,
+
+        direction: "D"
+
+    },
+
+
+    /* ---------------------------------------------
+       Q3 — RELATION
+       ACROSS
+    --------------------------------------------- */
+
+    3: {
+
+        answer: "RELATION",
+
+        row: 5,
+        col: 0,
+
+        direction: "A"
+
+    },
+
+
+    /* ---------------------------------------------
+       Q4 — LINE
+       ACROSS
+    --------------------------------------------- */
+
+    4: {
+
+        answer: "LINE",
+
+        row: 3,
+        col: 3,
+
+        direction: "A"
+
+    },
+
+
+    /* ---------------------------------------------
+       Q5 — PYTHON
+       DOWN
+    --------------------------------------------- */
+
+    5: {
+
+        answer: "PYTHON",
+
+        row: 0,
+        col: 7,
+
+        direction: "D"
+
+    },
+
+
+    /* ---------------------------------------------
+       Q6 — EXCEL
+       DOWN
+    --------------------------------------------- */
+
+    6: {
+
+        answer: "EXCEL",
+
+        row: 0,
+        col: 6,
+
+        direction: "D"
+
+    },
+
+
+    /* ---------------------------------------------
+       Q7 — PIE
+       DOWN
+    --------------------------------------------- */
+
+    7: {
+
+        answer: "PIE",
+
+        row: 4,
+        col: 5,
+
+        direction: "D"
+
+    },
+
+
+    /* ---------------------------------------------
+       Q8 — MATPLOTLIB
+       ACROSS
+    --------------------------------------------- */
+
+    8: {
+
+        answer: "MATPLOTLIB",
+
+        row: 4,
+        col: 2,
+
+        direction: "A"
+
+    }
+
+};
+
+
+/* =========================================================
+   CREATE GRID
+========================================================= */
+
+const grid =
+    document.getElementById(
+        "grid"
+    );
+
+
+let cells = {};
+
+let activeCells = {};
+
+
+/* =========================================================
+   CREATE EMPTY GRID
+========================================================= */
+
+for (
+    let row = 0;
+    row < ROWS;
+    row++
+) {
+
+    for (
+        let col = 0;
+        col < COLS;
+        col++
+    ) {
+
+        const cell =
+            document.createElement(
+                "div"
+            );
+
+
+        cell.className =
+            "cell block";
+
+
+        cell.dataset.row =
+            row;
+
+
+        cell.dataset.col =
+            col;
+
+
+        grid.appendChild(
+            cell
+        );
+
+
+        cells[
+            `${row}-${col}`
+        ] =
+            cell;
+
+    }
+
+}
+
+
+/* =========================================================
+   PLACE WORDS
+========================================================= */
+
+for (
+    const number in words
+) {
+
+
+    const word =
+        words[number];
+
+
+    const answer =
+        word.answer;
+
+
+    for (
+        let i = 0;
+        i < answer.length;
+        i++
+    ) {
+
+
+        let row =
+            word.row;
+
+
+        let col =
+            word.col;
+
+
+        /* ---------------------------------------------
+           ACROSS
+        --------------------------------------------- */
+
+        if (
+            word.direction === "A"
+        ) {
+
+            col += i;
+
+        }
+
+
+        /* ---------------------------------------------
+           DOWN
+        --------------------------------------------- */
+
+        else {
+
+            row += i;
+
+        }
+
+
+        const key =
+            `${row}-${col}`;
+
+
+        const cell =
+            cells[key];
+
+
+        if (!cell) {
+            continue;
+        }
+
+
+        /* ---------------------------------------------
+           ACTIVE CELL
+        --------------------------------------------- */
+
+        cell.classList.remove(
+            "block"
+        );
+
+
+        cell.classList.add(
+            "playable"
+        );
+
+
+        /* ---------------------------------------------
+           SAVE CORRECT LETTER
+
+           Crossing words share this same cell.
+        --------------------------------------------- */
+
+        if (
+            !activeCells[key]
+        ) {
+
+            activeCells[key] = {
+
+                answer:
+                    answer[i]
+
+            };
+
+        }
+
+
+        /* ---------------------------------------------
+           QUESTION NUMBER
+        --------------------------------------------- */
+
+        if (
+            i === 0
+        ) {
+
+            const numberElement =
+                document.createElement(
+                    "span"
+                );
+
+
+            numberElement.className =
+                "cell-number";
+
+
+            numberElement.textContent =
+                number;
+
+
+            cell.appendChild(
+                numberElement
+            );
+
+        }
+
+
+        /* ---------------------------------------------
+           INPUT
+        --------------------------------------------- */
+
+        if (
+            !cell.querySelector(
+                "input"
+            )
+        ) {
+
+
+            const input =
+                document.createElement(
+                    "input"
+                );
+
+
+            input.type =
+                "text";
+
+
+            input.maxLength =
+                1;
+
+
+            input.autocomplete =
+                "off";
+
+
+            input.spellcheck =
+                false;
+
+
+            /* =========================================
+               CAPITAL LETTERS ONLY
+            ========================================== */
+
+            input.addEventListener(
+                "input",
+                function() {
+
+
+                    this.value =
+                        this.value
+                        .replace(
+                            /[^a-zA-Z]/g,
+                            ""
+                        )
+                        .toUpperCase();
+
+
+                    cell.classList.remove(
+                        "correct"
+                    );
+
+
+                    cell.classList.remove(
+                        "wrong"
+                    );
+
+
+                    document.getElementById(
+                        "message"
+                    ).textContent =
+                        "";
+
+                }
+            );
+
+
+            /* =========================================
+               ENTER → NEXT CELL
+            ========================================== */
+
+            input.addEventListener(
+                "keydown",
+                function(event) {
+
+
+                    if (
+                        event.key ===
+                        "Enter"
+                    ) {
+
+
+                        const inputs =
+                            [
+                                ...document.querySelectorAll(
+                                    ".cell input"
+                                )
+                            ];
+
+
+                        const index =
+                            inputs.indexOf(
+                                this
+                            );
+
+
+                        if (
+                            index >= 0 &&
+                            index <
+                            inputs.length - 1
+                        ) {
+
+
+                            inputs[
+                                index + 1
+                            ].focus();
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+            cell.appendChild(
+                input
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   CHECK ANSWERS
+========================================================= */
+
+function checkAnswers() {
+
+
+    let solvedWords =
+        0;
+
+
+    /* =====================================================
+       CHECK EVERY PLAYABLE CELL
+    ===================================================== */
+
+    for (
+        const key in activeCells
+    ) {
+
+
+        const cell =
+            cells[key];
+
+
+        const input =
+            cell.querySelector(
+                "input"
+            );
+
+
+        if (!input) {
+            continue;
+        }
+
+
+        const typed =
+            input.value
+            .toUpperCase();
+
+
+        const correct =
+            activeCells[key].answer;
+
+
+        /* Remove previous state */
+
+        cell.classList.remove(
+            "correct"
+        );
+
+        cell.classList.remove(
+            "wrong"
+        );
+
+
+        /* Blank stays white */
+
+        if (
+            typed === ""
+        ) {
+
+            continue;
+
+        }
+
+
+        /* Correct = LIGHT GREEN */
+
+        if (
+            typed === correct
+        ) {
+
+
+            cell.classList.add(
+                "correct"
+            );
+
+        }
+
+
+        /* Wrong = LIGHT RED */
+
+        else {
+
+
+            cell.classList.add(
+                "wrong"
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CHECK EACH WORD
+    ===================================================== */
+
+    for (
+        const number in words
+    ) {
+
+
+        const word =
+            words[number];
+
+
+        let complete =
+            true;
+
+
+        for (
+            let i = 0;
+            i < word.answer.length;
+            i++
+        ) {
+
+
+            let row =
+                word.row;
+
+
+            let col =
+                word.col;
+
+
+            if (
+                word.direction === "A"
+            ) {
+
+                col += i;
+
+            }
+
+            else {
+
+                row += i;
+
+            }
+
+
+            const cell =
+                cells[
+                    `${row}-${col}`
+                ];
+
+
+            const input =
+                cell.querySelector(
+                    "input"
+                );
+
+
+            if (
+                !input ||
+                input.value
+                    .toUpperCase()
+                !==
+                word.answer[i]
+            ) {
+
+
+                complete =
+                    false;
+
+
+                break;
+
+            }
+
+        }
+
+
+        if (
+            complete
+        ) {
+
+            solvedWords++;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       UPDATE SCORE
+    ===================================================== */
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        solvedWords;
+
+
+    /* =====================================================
+       MESSAGE
+    ===================================================== */
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    if (
+        solvedWords === 8
+    ) {
+
+
+        message.textContent =
+            "🎉 Excellent! All 8 answers are correct!";
+
+
+        message.style.color =
+            "#b9f6ca";
+
+    }
+
+    else if (
+        solvedWords > 0
+    ) {
+
+
+        message.textContent =
+            solvedWords +
+            " / 8 completely correct";
+
+
+        message.style.color =
+            "#ffe082";
+
+    }
+
+    else {
+
+
+        message.textContent =
+            "Check the coloured letters and try again.";
+
+
+        message.style.color =
+            "#ffb4b4";
+
+    }
+
+}
+
+
+/* =========================================================
+   CLEAR
+========================================================= */
+
+function clearAnswers() {
+
+
+    for (
+        const key in activeCells
+    ) {
+
+
+        const cell =
+            cells[key];
+
+
+        const input =
+            cell.querySelector(
+                "input"
+            );
+
+
+        if (input) {
+
+            input.value =
+                "";
+
+        }
+
+
+        cell.classList.remove(
+            "correct"
+        );
+
+
+        cell.classList.remove(
+            "wrong"
+        );
+
+    }
+
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        "0";
+
+
+    document.getElementById(
+        "message"
+    ).textContent =
+        "";
+
+}
+
+
+/* =========================================================
+   REVEAL
+========================================================= */
+
+function revealAnswers() {
+
+
+    for (
+        const key in activeCells
+    ) {
+
+
+        const cell =
+            cells[key];
+
+
+        const input =
+            cell.querySelector(
+                "input"
+            );
+
+
+        if (input) {
+
+
+            input.value =
+                activeCells[key].answer;
+
+
+            cell.classList.remove(
+                "wrong"
+            );
+
+
+            cell.classList.add(
+                "correct"
+            );
+
+        }
+
+    }
+
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        "8";
+
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    message.textContent =
+        "💡 Answers revealed.";
+
+
+    message.style.color =
+        "#b9f6ca";
+
+}
+
+
+/* =========================================================
+   FULL SCREEN
+========================================================= */
+
+function toggleFullscreen() {
+
+
+    if (
+        !document.fullscreenElement
+    ) {
+
+
+        document.documentElement
+            .requestFullscreen()
+            .catch(
+                function(error) {
+
+                    console.log(
+                        "Fullscreen error:",
+                        error
+                    );
+
+                }
+            );
+
+    }
+
+    else {
+
+        document.exitFullscreen();
+
+    }
+
+}
+
+</script>
+
+
+</body>
+</html>
