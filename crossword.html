@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matplotlib Crossword – 6 Questions</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+.container {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: clamp(30px, 4vw, 48px);
+    color: #123b68;
+}
+
+.subtitle {
+    margin: 0;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 600;
+    color: #455468;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(620px, 1.15fr) minmax(420px, 0.85fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.section-title {
+    margin: 0 0 16px;
+    font-size: 28px;
+    color: #123b68;
+}
+
+/* CROSSWORD */
+.grid-wrap {
+    width: 100%;
+    overflow-x: auto;
+    padding: 8px 4px 12px;
+}
+
+.grid {
+    --cell: 58px;
+    display: grid;
+    grid-template-columns: repeat(10, var(--cell));
+    grid-template-rows: repeat(12, var(--cell));
+    width: max-content;
+    margin: 0 auto;
+    border: 3px solid #172033;
+    background: #172033;
+}
+
+.cell {
+    width: var(--cell);
+    height: var(--cell);
+    border: 1px solid #172033;
+    background: #ffffff;
+    position: relative;
+}
+
+.cell.black {
+    background: #172033;
+}
+
+.cell input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    text-align: center;
+    font-size: 31px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #111827;
+    background: transparent;
+    caret-color: #123b68;
+    padding: 0;
+}
+
+.cell input:focus {
+    background: #e8f2ff;
+}
+
+.cell.correct {
+    background: #c6efce !important;
+}
+
+.cell.wrong {
+    background: #ffd6d6 !important;
+}
+
+.number {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #172033;
+    pointer-events: none;
+}
+
+.instructions {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #455468;
+}
+
+/* CLUES */
+.clues {
+    display: grid;
+    gap: 14px;
+}
+
+.clue {
+    border: 2px solid #d7e0ea;
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fbfcfe;
+}
+
+.clue-number {
+    display: inline-block;
+    min-width: 34px;
+    font-size: 22px;
+    font-weight: 900;
+    color: #123b68;
+}
+
+.clue-text {
+    font-size: 21px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+.length {
+    margin-top: 5px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #66758a;
+}
+
+/* HINT TABLE */
+.hint-title {
+    margin: 24px 0 10px;
+    font-size: 24px;
+    color: #123b68;
+}
+
+.hint-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 20px;
+}
+
+.hint-table th,
+.hint-table td {
+    border: 2px solid #cfd9e5;
+    padding: 10px 12px;
+    text-align: center;
+}
+
+.hint-table th {
+    background: #e9f1fa;
+    font-weight: 900;
+}
+
+.hint-letter {
+    font-size: 27px;
+    font-weight: 900;
+    color: #123b68;
+}
+
+/* BUTTONS */
+.controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+
+button {
+    border: none;
+    border-radius: 11px;
+    padding: 15px 10px;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    opacity: 0.94;
+}
+
+#checkBtn {
+    background: #2e7d32;
+    color: white;
+}
+
+#clearBtn {
+    background: #607d8b;
+    color: white;
+}
+
+#revealBtn {
+    background: #1565c0;
+    color: white;
+}
+
+.score {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.message {
+    margin-top: 10px;
+    min-height: 30px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 19px;
+    font-weight: 800;
+    color: #526176;
+}
+
+@media (max-width: 1050px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .grid {
+        --cell: 54px;
+    }
+}
+
+@media (max-width: 650px) {
+    .container {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    .grid {
+        --cell: 45px;
+    }
+
+    .cell input {
+        font-size: 25px;
+    }
+
+    .clue-text {
+        font-size: 18px;
+    }
+
+    .controls {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>MATPLOTLIB CROSSWORD</h1>
+        <p class="subtitle">6 Questions • Type the answers in CAPITAL letters</p>
+    </header>
+
+    <div class="layout">
+
+        <!-- LEFT: CROSSWORD -->
+        <section class="card">
+            <h2 class="section-title">Solve the Crossword</h2>
+
+            <div class="grid-wrap">
+                <div id="crossword" class="grid"></div>
+            </div>
+
+            <div class="instructions">
+                Type one letter in each white box.
+                Click <b>CHECK ANSWERS</b> when finished.
+            </div>
+
+            <div class="controls">
+                <button id="checkBtn" type="button">✓ CHECK ANSWERS</button>
+                <button id="clearBtn" type="button">↻ CLEAR</button>
+                <button id="revealBtn" type="button">★ REVEAL</button>
+            </div>
+
+            <div id="score" class="score">0 / 6 Solved</div>
+            <div id="message" class="message"></div>
+        </section>
+
+        <!-- RIGHT: QUESTIONS + HINTS -->
+        <section class="card">
+            <h2 class="section-title">Questions</h2>
+
+            <div class="clues">
+
+                <div class="clue">
+                    <span class="clue-number">1.</span>
+                    <span class="clue-text">Which Matplotlib function is used to create a line graph?</span>
+                    <div class="length">4 letters</div>
+                </div>
+
+                <div class="clue">
+                    <span class="clue-number">2.</span>
+                    <span class="clue-text">Which Matplotlib function is used to create a bar chart?</span>
+                    <div class="length">3 letters</div>
+                </div>
+
+                <div class="clue">
+                    <span class="clue-number">3.</span>
+                    <span class="clue-text">Which Matplotlib function is used to create a pie chart?</span>
+                    <div class="length">3 letters</div>
+                </div>
+
+                <div class="clue">
+                    <span class="clue-number">4.</span>
+                    <span class="clue-text">Which Matplotlib function is used to create a histogram?</span>
+                    <div class="length">4 letters</div>
+                </div>
+
+                <div class="clue">
+                    <span class="clue-number">5.</span>
+                    <span class="clue-text">Which Matplotlib function is used to create a scatter plot?</span>
+                    <div class="length">7 letters</div>
+                </div>
+
+                <div class="clue">
+                    <span class="clue-number">6.</span>
+                    <span class="clue-text">Which Python library are we using for data visualization?</span>
+                    <div class="length">10 letters</div>
+                </div>
+
+            </div>
+
+            <h3 class="hint-title">First-Letter Hints</h3>
+
+            <table class="hint-table">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Hint</th>
+                        <th>Letters</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td class="hint-letter">P</td><td>4</td></tr>
+                    <tr><td>2</td><td class="hint-letter">B</td><td>3</td></tr>
+                    <tr><td>3</td><td class="hint-letter">P</td><td>3</td></tr>
+                    <tr><td>4</td><td class="hint-letter">H</td><td>4</td></tr>
+                    <tr><td>5</td><td class="hint-letter">S</td><td>7</td></tr>
+                    <tr><td>6</td><td class="hint-letter">M</td><td>10</td></tr>
+                </tbody>
+            </table>
+
+            <div class="footer">
+                DATA → QUESTION → VISUALIZATION → INTERPRETATION
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+/*
+    ANSWERS
+    1. PLOT
+    2. BAR
+    3. PIE
+    4. HIST
+    5. SCATTER
+    6. MATPLOTLIB
+
+    This is a proper crossword layout.
+    Coordinates are zero-based: row, column.
+
+    1 PLOT       = vertical, starts (3,3)
+    2 BAR        = vertical, starts (9,3)
+    3 PIE        = vertical, starts (5,1)
+    4 HIST       = horizontal, starts (6,0)
+    5 SCATTER    = horizontal, starts (1,1)
+    6 MATPLOTLIB = vertical, starts (0,3)
+*/
+
+const SIZE = 12;
+
+const entries = [
+    {
+        number: 1,
+        answer: "PLOT",
+        direction: "D",
+        row: 3,
+        col: 3
+    },
+    {
+        number: 2,
+        answer: "BAR",
+        direction: "D",
+        row: 9,
+        col: 3
+    },
+    {
+        number: 3,
+        answer: "PIE",
+        direction: "D",
+        row: 5,
+        col: 1
+    },
+    {
+        number: 4,
+        answer: "HIST",
+        direction: "A",
+        row: 6,
+        col: 0
+    },
+    {
+        number: 5,
+        answer: "SCATTER",
+        direction: "A",
+        row: 1,
+        col: 1
+    },
+    {
+        number: 6,
+        answer: "MATPLOTLIB",
+        direction: "D",
+        row: 0,
+        col: 3
+    }
+];
+
+const crossword = document.getElementById("crossword");
+const scoreEl = document.getElementById("score");
+const messageEl = document.getElementById("message");
+
+const cells = {};
+const answerCells = {};
+const starts = {};
+
+/* Create the empty 12 x 10 board */
+for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < 10; c++) {
+
+        const cell = document.createElement("div");
+        cell.className = "cell black";
+
+        const key = `${r}-${c}`;
+        cells[key] = cell;
+
+        crossword.appendChild(cell);
+    }
+}
+
+/* Put words into the board */
+entries.forEach(entry => {
+
+    const keyStart = `${entry.row}-${entry.col}`;
+    starts[keyStart] = entry.number;
+
+    for (let i = 0; i < entry.answer.length; i++) {
+
+        const r = entry.direction === "D"
+            ? entry.row + i
+            : entry.row;
+
+        const c = entry.direction === "A"
+            ? entry.col + i
+            : entry.col;
+
+        const key = `${r}-${c}`;
+        const cell = cells[key];
+
+        if (!cell) {
+            console.error("Invalid crossword coordinate:", key);
+            continue;
+        }
+
+        cell.className = "cell";
+
+        /* If this cell already belongs to another word, reuse it */
+        let input = cell.querySelector("input");
+
+        if (!input) {
+            input = document.createElement("input");
+            input.type = "text";
+            input.maxLength = 1;
+            input.autocomplete = "off";
+            input.spellcheck = false;
+
+            input.addEventListener("input", function () {
+                this.value = this.value.toUpperCase().replace(/[^A-Z]/g, "");
+                this.parentElement.classList.remove("correct", "wrong");
+
+                if (this.value) {
+                    moveToNextCell(r, c, entry.direction);
+                }
+            });
+
+            input.addEventListener("keydown", function (event) {
+                handleKeyNavigation(event, r, c);
+            });
+
+            cell.appendChild(input);
+        }
+
+        if (!answerCells[key]) {
+            answerCells[key] = new Set();
+        }
+
+        answerCells[key].add(entry.number);
+
+        /*
+            Store the expected letter for this cell.
+            Intersections must contain the same letter.
+        */
+        if (!cell.dataset.answer) {
+            cell.dataset.answer = entry.answer[i];
+        } else if (cell.dataset.answer !== entry.answer[i]) {
+            console.error("Crossword conflict at", key);
+        }
+
+        input.dataset.row = r;
+        input.dataset.col = c;
+    }
+});
+
+/* Add clue numbers */
+Object.keys(starts).forEach(key => {
+    const number = starts[key];
+    const numberSpan = document.createElement("span");
+    numberSpan.className = "number";
+    numberSpan.textContent = number;
+    cells[key].appendChild(numberSpan);
+});
+
+/* Move to next white cell */
+function moveToNextCell(row, col, direction) {
+
+    let r = row;
+    let c = col;
+
+    if (direction === "A") {
+        c++;
+    } else {
+        r++;
+    }
+
+    const next = cells[`${r}-${c}`];
+
+    if (next) {
+        const input = next.querySelector("input");
+        if (input) {
+            input.focus();
+        }
+    }
+}
+
+/* Keyboard navigation */
+function handleKeyNavigation(event, row, col) {
+
+    let r = row;
+    let c = col;
+
+    if (event.key === "ArrowRight") c++;
+    else if (event.key === "ArrowLeft") c--;
+    else if (event.key === "ArrowDown") r++;
+    else if (event.key === "ArrowUp") r--;
+    else if (event.key === "Backspace" && !event.target.value) {
+        c--;
+    } else {
+        return;
+    }
+
+    event.preventDefault();
+
+    const next = cells[`${r}-${c}`];
+
+    if (next) {
+        const input = next.querySelector("input");
+        if (input) {
+            input.focus();
+            if (event.key === "Backspace") {
+                input.value = "";
+            }
+        }
+    }
+}
+
+/* CHECK ANSWERS */
+document.getElementById("checkBtn").addEventListener("click", checkAnswers);
+
+function checkAnswers() {
+
+    let solvedCount = 0;
+
+    /* Check every individual white cell */
+    Object.keys(answerCells).forEach(key => {
+
+        const cell = cells[key];
+        const input = cell.querySelector("input");
+
+        if (!input) return;
+
+        const typed = input.value.toUpperCase();
+        const correct = cell.dataset.answer;
+
+        cell.classList.remove("correct", "wrong");
+
+        if (typed === correct) {
+            cell.classList.add("correct");
+        } else if (typed !== "") {
+            cell.classList.add("wrong");
+        }
+    });
+
+    /* Check each complete word */
+    entries.forEach(entry => {
+
+        let complete = true;
+
+        for (let i = 0; i < entry.answer.length; i++) {
+
+            const r = entry.direction === "D"
+                ? entry.row + i
+                : entry.row;
+
+            const c = entry.direction === "A"
+                ? entry.col + i
+                : entry.col;
+
+            const cell = cells[`${r}-${c}`];
+            const input = cell.querySelector("input");
+
+            if (!input || input.value.toUpperCase() !== entry.answer[i]) {
+                complete = false;
+                break;
+            }
+        }
+
+        if (complete) solvedCount++;
+    });
+
+    scoreEl.textContent = `${solvedCount} / 6 Solved`;
+
+    if (solvedCount === 6) {
+        messageEl.textContent = "🎉 Excellent! All 6 answers are correct!";
+        messageEl.style.color = "#2e7d32";
+    } else if (solvedCount > 0) {
+        messageEl.textContent = `${solvedCount} correct. Keep going!`;
+        messageEl.style.color = "#1565c0";
+    } else {
+        messageEl.textContent = "Check your answers and try again.";
+        messageEl.style.color = "#c62828";
+    }
+}
+
+/* CLEAR */
+document.getElementById("clearBtn").addEventListener("click", clearAnswers);
+
+function clearAnswers() {
+
+    Object.keys(answerCells).forEach(key => {
+
+        const cell = cells[key];
+        const input = cell.querySelector("input");
+
+        if (input) {
+            input.value = "";
+        }
+
+        cell.classList.remove("correct", "wrong");
+    });
+
+    scoreEl.textContent = "0 / 6 Solved";
+    messageEl.textContent = "";
+}
+
+/* REVEAL */
+document.getElementById("revealBtn").addEventListener("click", revealAnswers);
+
+function revealAnswers() {
+
+    Object.keys(answerCells).forEach(key => {
+
+        const cell = cells[key];
+        const input = cell.querySelector("input");
+
+        if (input) {
+            input.value = cell.dataset.answer;
+            cell.classList.remove("wrong");
+            cell.classList.add("correct");
+        }
+    });
+
+    scoreEl.textContent = "6 / 6 Solved";
+    messageEl.textContent = "Answers revealed.";
+    messageEl.style.color = "#1565c0";
+}
+
+/* Make the first crossword cell active */
+const firstInput = document.querySelector(".cell input");
+if (firstInput) {
+    firstInput.focus();
+}
+</script>
+
+</body>
+</html>
