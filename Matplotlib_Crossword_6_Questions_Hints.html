@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Matplotlib Crossword - 6 Questions</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#eef2f6;
+  font-family:Arial,sans-serif;
+  color:#142033;
+}
+.app{
+  max-width:1450px;
+  margin:auto;
+  background:#fff;
+  min-height:100vh;
+  padding:28px;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:20px;
+  border-bottom:3px solid #142033;
+  padding-bottom:16px;
+}
+h1{margin:0;font-size:clamp(34px,4vw,56px)}
+.sub{color:#26704f;font-size:22px;font-weight:700;margin-top:5px}
+.score{
+  border:3px solid #d4a13b;
+  border-radius:25px;
+  padding:10px 18px;
+  font-size:20px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.layout{
+  display:grid;
+  grid-template-columns:1fr 1.15fr;
+  gap:30px;
+  margin-top:26px;
+}
+.card{
+  border:1px solid #d8dee8;
+  border-radius:16px;
+  padding:24px;
+  background:#fff;
+}
+h2{font-size:27px;margin:0 0 18px}
+#grid{
+  width:min(100%,650px);
+  aspect-ratio:1;
+  display:grid;
+  grid-template-columns:repeat(15,1fr);
+  gap:1px;
+  background:#142033;
+  border:4px solid #142033;
+  margin:auto;
+}
+.cell{background:#fff;position:relative}
+.black{background:#142033}
+.cell input{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+  background:transparent;
+  text-align:center;
+  text-transform:uppercase;
+  font-weight:800;
+  color:#142033;
+  font-size:clamp(20px,2.5vw,31px);
+  outline:none;
+  padding-top:7px;
+}
+.cell input:focus{
+  background:#fff6d9;
+  box-shadow:inset 0 0 0 3px #d4a13b;
+}
+.num{
+  position:absolute;
+  top:2px;
+  left:4px;
+  font-size:11px;
+  font-weight:900;
+  color:#667085;
+  z-index:2;
+}
+.correct input{background:#cfeeda}
+.wrong input{background:#f8d6d6}
+
+h3{
+  color:#26704f;
+  font-size:28px;
+  margin:0 0 14px;
+  border-bottom:3px solid #26704f;
+  padding-bottom:7px;
+}
+.clue{
+  font-size:23px;
+  line-height:1.42;
+  margin-bottom:20px;
+}
+.clue b{font-size:25px}
+.clue small{font-size:19px;color:#667085;font-weight:700}
+
+.hint-title{
+  margin-top:24px;
+  color:#142033;
+  font-size:23px;
+  font-weight:900;
+}
+.hints{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  font-size:21px;
+}
+.hints th,.hints td{
+  border:2px solid #d8dee8;
+  padding:10px 12px;
+  text-align:left;
+}
+.hints th{background:#f1f4f7;font-size:20px}
+.hints .letter{
+  text-align:center;
+  font-weight:900;
+  font-size:25px;
+  color:#26704f;
+  width:80px;
+}
+
+.controls{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+button{
+  min-height:52px;
+  border:0;
+  border-radius:10px;
+  padding:0 22px;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
+}
+.primary{background:#142033;color:#fff}
+.secondary{background:#e9edf2;color:#142033}
+.status{
+  margin-top:14px;
+  background:#f6f8fa;
+  padding:15px;
+  border-radius:9px;
+  font-size:19px;
+  font-weight:700;
+  min-height:48px;
+}
+.tip{
+  margin-top:20px;
+  background:#fff9ea;
+  border-left:5px solid #d4a13b;
+  padding:16px;
+  font-size:20px;
+  line-height:1.4;
+}
+footer{
+  margin-top:22px;
+  padding-top:14px;
+  border-top:1px solid #d8dee8;
+  color:#667085;
+  font-size:16px;
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+}
+@media(max-width:1050px){
+  .layout{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  .app{padding:16px}
+  header{align-items:flex-start;flex-direction:column}
+  .clue{font-size:20px}
+  .hints{font-size:18px}
+  .hints .letter{font-size:22px}
+  footer{flex-direction:column}
+}
+</style>
+</head>
+
+<body>
+<main class="app">
+
+<header>
+  <div>
+    <h1>MATPLOTLIB CROSSWORD</h1>
+    <div class="sub">Data Visualization • 6-Question Quick Quiz</div>
+  </div>
+  <div class="score" id="score">0 / 6 solved</div>
+</header>
+
+<div class="layout">
+
+<section class="card">
+  <h2>Type Your Answers</h2>
+  <div id="grid"></div>
+
+  <div class="controls">
+    <button class="primary" id="check">CHECK</button>
+    <button class="secondary" id="clear">CLEAR</button>
+    <button class="secondary" id="reveal">REVEAL</button>
+  </div>
+
+  <div class="status" id="status">Start with any question.</div>
+</section>
+
+<section class="card">
+
+  <h3>QUESTIONS</h3>
+
+  <div class="clue">
+    <b>1.</b> Which Matplotlib function is used to create a line graph?
+    <small>(4)</small>
+  </div>
+
+  <div class="clue">
+    <b>2.</b> Which Matplotlib function is used to create a bar chart?
+    <small>(3)</small>
+  </div>
+
+  <div class="clue">
+    <b>3.</b> Which Matplotlib function is used to create a pie chart?
+    <small>(3)</small>
+  </div>
+
+  <div class="clue">
+    <b>4.</b> Which Matplotlib function is used to create a histogram?
+    <small>(4)</small>
+  </div>
+
+  <div class="clue">
+    <b>5.</b> Which Matplotlib function is used to create a scatter plot?
+    <small>(7)</small>
+  </div>
+
+  <div class="clue">
+    <b>6.</b> Which Python library are we using for data visualization?
+    <small>(10)</small>
+  </div>
+
+  <div class="hint-title">FIRST-LETTER HINTS</div>
+
+  <table class="hints">
+    <tr><th>Question</th><th>Hint</th></tr>
+    <tr><td>1</td><td class="letter">P</td></tr>
+    <tr><td>2</td><td class="letter">B</td></tr>
+    <tr><td>3</td><td class="letter">P</td></tr>
+    <tr><td>4</td><td class="letter">H</td></tr>
+    <tr><td>5</td><td class="letter">S</td></tr>
+    <tr><td>6</td><td class="letter">M</td></tr>
+  </table>
+
+  <div class="tip">
+    <b>Teacher cue:</b><br>
+    Think about the Matplotlib functions you used in the examples.
+  </div>
+
+</section>
+</div>
+
+<footer>
+  <span>Based on your Matplotlib presentation</span>
+  <span>DATA → QUESTION → VISUALIZATION → INTERPRETATION</span>
+</footer>
+
+</main>
+
+<script>
+/*
+  15 × 15 crossword.
+  Answers:
+  1 PLOT
+  2 BAR
+  3 PIE
+  4 HIST
+  5 SCATTER
+  6 MATPLOTLIB
+*/
+
+const data = Array.from({length:15},()=>Array(15).fill(""));
+
+/* Crossword placement:
+   MATPLOTLIB horizontal: row 7, col 3
+   SCATTER vertical:      row 3, col 7
+   HIST horizontal:       row 3, col 5
+   PLOT vertical:         row 7, col 3
+   BAR vertical:          row 7, col 5
+   PIE horizontal:        row 11, col 3
+*/
+
+/* Place letters */
+function put(word,dir,r,c){
+  for(let i=0;i<word.length;i++){
+    const rr=r+(dir==="D"?i:0);
+    const cc=c+(dir==="A"?i:0);
+    data[rr][cc]=word[i];
+  }
+}
+
+put("MATPLOTLIB","A",7,3);
+put("SCATTER","D",3,7);
+put("HIST","A",3,5);
+put("PLOT","D",7,3);
+put("BAR","D",7,5);
+put("PIE","A",11,3);
+
+/*
+  Start numbers.
+*/
+const starts={
+  "7-3":1,
+  "7-5":2,
+  "11-3":3,
+  "3-5":4,
+  "3-7":5,
+  "7-8":6
+};
+
+const entries=[
+  {n:1,w:"PLOT",d:"D",r:7,c:3},
+  {n:2,w:"BAR",d:"D",r:7,c:5},
+  {n:3,w:"PIE",d:"A",r:11,c:3},
+  {n:4,w:"HIST",d:"A",r:3,c:5},
+  {n:5,w:"SCATTER",d:"D",r:3,c:7},
+  {n:6,w:"MATPLOTLIB",d:"A",r:7,c:8}
+];
+
+const grid=document.getElementById("grid");
+const inputs={};
+
+for(let r=0;r<15;r++){
+  for(let c=0;c<15;c++){
+
+    const cell=document.createElement("div");
+    cell.className="cell"+(data[r][c]?"":" black");
+
+    if(data[r][c]){
+      const key=`${r}-${c}`;
+
+      if(starts[key]){
+        const n=document.createElement("span");
+        n.className="num";
+        n.textContent=starts[key];
+        cell.appendChild(n);
+      }
+
+      const input=document.createElement("input");
+      input.maxLength=1;
+      input.dataset.answer=data[r][c];
+
+      input.addEventListener("input",()=>{
+        input.value=input.value
+          .replace(/[^a-z]/gi,"")
+          .toUpperCase();
+
+        cell.classList.remove("correct","wrong");
+      });
+
+      cell.appendChild(input);
+      inputs[key]=input;
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+function check(){
+
+  let solved=0;
+
+  Object.values(inputs).forEach(input=>{
+    input.parentElement.classList.remove("correct","wrong");
+  });
+
+  Object.values(inputs).forEach(input=>{
+    if(input.value){
+      if(input.value.toUpperCase()===input.dataset.answer.toUpperCase()){
+        input.parentElement.classList.add("correct");
+      }else{
+        input.parentElement.classList.add("wrong");
+      }
+    }
+  });
+
+  entries.forEach(entry=>{
+    let ok=true;
+
+    for(let i=0;i<entry.w.length;i++){
+
+      const r=entry.r+(entry.d==="D"?i:0);
+      const c=entry.c+(entry.d==="A"?i:0);
+      const input=inputs[`${r}-${c}`];
+
+      if(!input || input.value.toUpperCase()!==entry.w[i]){
+        ok=false;
+      }
+    }
+
+    if(ok) solved++;
+  });
+
+  document.getElementById("score").textContent=`${solved} / 6 solved`;
+
+  document.getElementById("status").textContent=
+    solved===6
+      ? "🎉 Excellent! All 6 answers are correct."
+      : `${solved} of 6 questions completely correct.`;
+}
+
+document.getElementById("check").onclick=check;
+
+document.getElementById("clear").onclick=()=>{
+  Object.values(inputs).forEach(input=>{
+    input.value="";
+    input.parentElement.classList.remove("correct","wrong");
+  });
+
+  document.getElementById("score").textContent="0 / 6 solved";
+  document.getElementById("status").textContent="Cleared. Start again.";
+};
+
+document.getElementById("reveal").onclick=()=>{
+  Object.values(inputs).forEach(input=>{
+    input.value=input.dataset.answer;
+    input.parentElement.classList.add("correct");
+  });
+
+  document.getElementById("score").textContent="6 / 6 solved";
+  document.getElementById("status").textContent="Answers revealed.";
+};
+</script>
+
+</body>
+</html>
