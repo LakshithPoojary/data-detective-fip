@@ -1,0 +1,1440 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Matplotlib Crossword</title>
+
+<style>
+
+/* =====================================================
+   BASIC
+===================================================== */
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    background:#eef2f6;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#142033;
+}
+
+
+/* =====================================================
+   MAIN APP
+===================================================== */
+
+.app{
+    width:100%;
+    height:100vh;
+    background:#ffffff;
+
+    padding:18px 28px;
+
+    display:flex;
+    flex-direction:column;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    border-bottom:3px solid #142033;
+
+    padding-bottom:12px;
+
+    flex-shrink:0;
+}
+
+h1{
+    margin:0;
+
+    font-size:clamp(34px,4vw,58px);
+
+    color:#142033;
+
+    line-height:1;
+}
+
+.sub{
+    color:#26704f;
+
+    font-size:clamp(17px,1.6vw,23px);
+
+    font-weight:700;
+
+    margin-top:7px;
+}
+
+.score{
+    border:3px solid #d4a13b;
+
+    border-radius:25px;
+
+    padding:11px 18px;
+
+    font-weight:900;
+
+    white-space:nowrap;
+
+    font-size:clamp(17px,1.5vw,22px);
+}
+
+
+/* =====================================================
+   MAIN TWO-COLUMN LAYOUT
+===================================================== */
+
+.layout{
+
+    display:grid;
+
+    grid-template-columns:
+        minmax(0,1.05fr)
+        minmax(0,.95fr);
+
+    gap:25px;
+
+    margin-top:18px;
+
+    flex:1;
+
+    min-height:0;
+}
+
+
+/* =====================================================
+   CARDS
+===================================================== */
+
+.card{
+
+    border:1px solid #d8dee8;
+
+    border-radius:16px;
+
+    padding:18px;
+
+    background:#ffffff;
+
+    min-height:0;
+}
+
+.card:first-child{
+
+    display:flex;
+
+    flex-direction:column;
+}
+
+h2{
+
+    font-size:clamp(21px,2vw,28px);
+
+    margin:0 0 8px;
+
+    color:#142033;
+
+    flex-shrink:0;
+}
+
+
+/* =====================================================
+   CROSSWORD GRID
+===================================================== */
+
+#grid{
+
+    width:min(100%,68vh);
+
+    aspect-ratio:1;
+
+    display:grid;
+
+    grid-template-columns:repeat(15,1fr);
+
+    gap:1px;
+
+    background:#142033;
+
+    border:4px solid #142033;
+
+    margin:auto;
+
+    flex-shrink:1;
+}
+
+.cell{
+
+    background:#ffffff;
+
+    position:relative;
+}
+
+.black{
+
+    background:#142033;
+}
+
+
+/* =====================================================
+   CROSSWORD LETTER
+===================================================== */
+
+.cell input{
+
+    position:absolute;
+
+    inset:0;
+
+    width:100%;
+    height:100%;
+
+    border:0;
+
+    background:transparent;
+
+    text-align:center;
+
+    text-transform:uppercase;
+
+    font-weight:900;
+
+    color:#142033;
+
+    /*
+       LARGE FONT FOR PROJECTOR
+    */
+
+    font-size:clamp(20px,3.2vh,36px);
+
+    outline:none;
+
+    padding-top:7px;
+}
+
+
+/* Focused cell */
+
+.cell input:focus{
+
+    background:#fff6d9;
+
+    box-shadow:
+        inset 0 0 0 4px #d4a13b;
+}
+
+
+/* Question number */
+
+.num{
+
+    position:absolute;
+
+    top:2px;
+
+    left:4px;
+
+    font-size:clamp(9px,1.2vh,13px);
+
+    font-weight:900;
+
+    color:#667085;
+
+    z-index:2;
+
+    pointer-events:none;
+}
+
+
+/* =====================================================
+   ANSWER COLOURS
+===================================================== */
+
+/*
+   CORRECT = LIGHT GREEN
+*/
+
+.correct input{
+
+    background:#c6efce !important;
+
+    color:#14532d;
+}
+
+
+/*
+   WRONG = LIGHT RED
+*/
+
+.wrong input{
+
+    background:#ffc7ce !important;
+
+    color:#991b1b;
+}
+
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.controls{
+
+    display:flex;
+
+    gap:10px;
+
+    flex-wrap:wrap;
+
+    margin-top:10px;
+
+    flex-shrink:0;
+}
+
+button{
+
+    min-height:46px;
+
+    border:0;
+
+    border-radius:10px;
+
+    padding:0 20px;
+
+    font-weight:900;
+
+    cursor:pointer;
+
+    font-size:clamp(15px,1.3vw,19px);
+}
+
+.primary{
+
+    background:#142033;
+
+    color:#ffffff;
+}
+
+.secondary{
+
+    background:#e9edf2;
+
+    color:#142033;
+}
+
+button:hover{
+
+    opacity:.9;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.status{
+
+    margin-top:9px;
+
+    background:#f6f8fa;
+
+    padding:10px 13px;
+
+    border-radius:9px;
+
+    font-weight:800;
+
+    min-height:42px;
+
+    font-size:clamp(14px,1.2vw,18px);
+
+    flex-shrink:0;
+}
+
+
+/* =====================================================
+   CLUES
+===================================================== */
+
+.clues{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:30px;
+}
+
+h3{
+
+    color:#26704f;
+
+    margin:0 0 15px;
+
+    font-size:clamp(22px,2vw,30px);
+}
+
+.clue{
+
+    font-size:clamp(17px,1.55vw,23px);
+
+    line-height:1.4;
+
+    margin-bottom:22px;
+}
+
+.clue b{
+
+    color:#142033;
+
+    font-size:1.05em;
+}
+
+small{
+
+    color:#667085;
+
+    font-size:.85em;
+}
+
+
+/* =====================================================
+   TEACHER CUE
+===================================================== */
+
+.tip{
+
+    margin-top:18px;
+
+    background:#fff9ea;
+
+    border-left:5px solid #d4a13b;
+
+    padding:14px 16px;
+
+    line-height:1.4;
+
+    font-size:clamp(16px,1.35vw,20px);
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+footer{
+
+    margin-top:10px;
+
+    padding-top:8px;
+
+    border-top:1px solid #d8dee8;
+
+    color:#667085;
+
+    font-size:clamp(11px,1vw,15px);
+
+    display:flex;
+
+    justify-content:space-between;
+
+    gap:15px;
+
+    flex-shrink:0;
+}
+
+
+/* =====================================================
+   PROJECTOR 16:9
+===================================================== */
+
+@media (min-width:1000px) and (max-height:800px){
+
+    .app{
+
+        padding:12px 24px;
+    }
+
+    header{
+
+        padding-bottom:8px;
+    }
+
+    h1{
+
+        font-size:38px;
+    }
+
+    .sub{
+
+        font-size:16px;
+    }
+
+    .layout{
+
+        margin-top:10px;
+
+        gap:18px;
+    }
+
+    .card{
+
+        padding:13px;
+    }
+
+    h2{
+
+        font-size:20px;
+
+        margin-bottom:5px;
+    }
+
+    #grid{
+
+        width:min(100%,68vh);
+    }
+
+    .clue{
+
+        font-size:17px;
+
+        margin-bottom:15px;
+    }
+
+    h3{
+
+        font-size:23px;
+
+        margin-bottom:10px;
+    }
+
+    .tip{
+
+        margin-top:8px;
+
+        padding:9px 12px;
+
+        font-size:15px;
+    }
+
+    footer{
+
+        margin-top:5px;
+
+        padding-top:5px;
+    }
+}
+
+
+/* =====================================================
+   SHORT PROJECTOR
+===================================================== */
+
+@media (min-width:1000px) and (max-height:650px){
+
+    .app{
+
+        padding:7px 18px;
+    }
+
+    h1{
+
+        font-size:31px;
+    }
+
+    .layout{
+
+        margin-top:6px;
+    }
+
+    #grid{
+
+        width:min(100%,59vh);
+    }
+
+    .clue{
+
+        font-size:15px;
+
+        margin-bottom:10px;
+    }
+
+    .tip,
+    footer{
+
+        display:none;
+    }
+
+    button{
+
+        min-height:38px;
+    }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:850px){
+
+    html,
+    body{
+
+        overflow:auto;
+    }
+
+    .app{
+
+        height:auto;
+
+        min-height:100vh;
+
+        padding:18px;
+    }
+
+    .layout{
+
+        grid-template-columns:1fr;
+
+        flex:none;
+    }
+
+    #grid{
+
+        width:min(100%,620px);
+    }
+
+    .clues{
+
+        grid-template-columns:1fr;
+    }
+
+    header{
+
+        align-items:flex-start;
+
+        flex-direction:column;
+
+        gap:10px;
+    }
+
+    footer{
+
+        flex-direction:column;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<main class="app">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <div>
+
+        <h1>MATPLOTLIB CROSSWORD</h1>
+
+        <div class="sub">
+            Data Visualization • Quick Quiz
+        </div>
+
+    </div>
+
+
+    <div class="score" id="score">
+
+        0 / 6 solved
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     MAIN CONTENT
+===================================================== -->
+
+<div class="layout">
+
+
+<!-- =====================================================
+     CROSSWORD
+===================================================== -->
+
+<section class="card">
+
+    <h2>
+        Type your answers
+    </h2>
+
+
+    <div id="grid"></div>
+
+
+    <div class="controls">
+
+        <button
+            class="primary"
+            id="check">
+            CHECK
+        </button>
+
+        <button
+            class="secondary"
+            id="clear">
+            CLEAR
+        </button>
+
+        <button
+            class="secondary"
+            id="reveal">
+            REVEAL
+        </button>
+
+    </div>
+
+
+    <div
+        class="status"
+        id="status">
+
+        Start with any clue.
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     CLUES
+===================================================== -->
+
+<section class="card">
+
+
+<div class="clues">
+
+
+<!-- ================= ACROSS ================= -->
+
+<div>
+
+    <h3>ACROSS</h3>
+
+
+    <div class="clue">
+
+        <b>1.</b>
+
+        Turning data into a visual form
+        that helps us understand patterns.
+
+        <small>(13)</small>
+
+    </div>
+
+
+    <div class="clue">
+
+        <b>2.</b>
+
+        Python library used in this
+        session for visualization.
+
+        <small>(10)</small>
+
+    </div>
+
+
+    <div class="clue">
+
+        <b>3.</b>
+
+        Shows the relationship between
+        two numerical variables.
+
+        <small>(7)</small>
+
+    </div>
+
+</div>
+
+
+
+<!-- ================= DOWN ================= -->
+
+<div>
+
+    <h3>DOWN</h3>
+
+
+    <div class="clue">
+
+        <b>4.</b>
+
+        Shows the distribution of
+        numerical data using bins.
+
+        <small>(9)</small>
+
+    </div>
+
+
+    <div class="clue">
+
+        <b>5.</b>
+
+        Compares values across
+        separate categories.
+
+        <small>(3)</small>
+
+    </div>
+
+
+    <div class="clue">
+
+        <b>6.</b>
+
+        Shows parts of a
+        meaningful whole.
+
+        <small>(3)</small>
+
+    </div>
+
+</div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     TEACHER CUE
+===================================================== -->
+
+<div class="tip">
+
+    <b>Teacher cue:</b><br>
+
+    “Which question does this chart answer?”
+
+</div>
+
+
+</section>
+
+</div>
+
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer>
+
+    <span>
+        Based on your Matplotlib presentation
+    </span>
+
+    <span>
+        DATA → QUESTION → VISUALIZATION → INTERPRETATION
+    </span>
+
+</footer>
+
+
+</main>
+
+
+
+<script>
+
+/* =====================================================
+   CROSSWORD DATA
+
+   6 QUESTIONS
+
+   1. VISUALIZATION  → ACROSS
+   2. MATPLOTLIB      → ACROSS
+   3. SCATTER         → ACROSS
+   4. HISTOGRAM       → DOWN
+   5. BAR             → DOWN
+   6. PIE             → DOWN
+
+===================================================== */
+
+
+/* =====================================================
+   15 × 15 GRID
+
+   The letters are used only as the answer key.
+   Students see blank cells.
+===================================================== */
+
+const data = [
+
+    ["","","","","","","","","","","","","","",""],
+
+    ["","","V","I","S","U","A","L","I","Z","A","T","I","O","N"],
+
+    ["","","","","A","","","","","H","","","","",""],
+
+    ["","M","A","T","P","L","O","T","L","I","B","","","",""],
+
+    ["","","","","I","","","","","S","","","","",""],
+
+    ["","","","","Z","S","C","A","T","T","E","R","","",""],
+
+    ["","","","","A","","","","","O","","","","",""],
+
+    ["","","","","T","","","","","G","","","","",""],
+
+    ["","","","","I","","","","","R","","","","",""],
+
+    ["","","","","O","","","","","A","","","","",""],
+
+    ["","","","","N","","","","","M","","","","",""],
+
+    ["","","","","","","","","","","","","","",""],
+
+    ["","","","","","","","","","","","","","",""],
+
+    ["","","","","","","","","","","","","","",""],
+
+    ["","","","","","","","","","","","","","",""]
+
+];
+
+
+
+/* =====================================================
+   STARTING NUMBERS
+
+===================================================== */
+
+const starts = {
+
+    "1-2":1,
+
+    "3-1":2,
+
+    "5-5":3,
+
+    "2-9":4,
+
+    "0-1":5,
+
+    "1-4":6
+
+};
+
+
+
+/* =====================================================
+   ANSWER ENTRIES
+
+===================================================== */
+
+const entries = [
+
+    {
+        n:1,
+        w:"VISUALIZATION",
+        d:"A",
+        r:1,
+        c:2
+    },
+
+    {
+        n:2,
+        w:"MATPLOTLIB",
+        d:"A",
+        r:3,
+        c:1
+    },
+
+    {
+        n:3,
+        w:"SCATTER",
+        d:"A",
+        r:5,
+        c:5
+    },
+
+    {
+        n:4,
+        w:"HISTOGRAM",
+        d:"D",
+        r:2,
+        c:9
+    },
+
+    {
+        n:5,
+        w:"BAR",
+        d:"D",
+        r:0,
+        c:1
+    },
+
+    {
+        n:6,
+        w:"PIE",
+        d:"D",
+        r:1,
+        c:4
+    }
+
+];
+
+
+
+/* =====================================================
+   CREATE GRID
+===================================================== */
+
+const grid =
+    document.getElementById("grid");
+
+const inputs = {};
+
+
+
+for(let r=0; r<15; r++){
+
+    for(let c=0; c<15; c++){
+
+        const cell =
+            document.createElement("div");
+
+
+        cell.className =
+            "cell" +
+            (data[r][c] ? "" : " black");
+
+
+        /*
+           Only create input for
+           non-black cells.
+        */
+
+        if(data[r][c]){
+
+            const key =
+                `${r}-${c}`;
+
+
+            /* -------------------------
+               QUESTION NUMBER
+            ------------------------- */
+
+            if(starts[key]){
+
+                const num =
+                    document.createElement("span");
+
+                num.className = "num";
+
+                num.textContent =
+                    starts[key];
+
+                cell.appendChild(num);
+
+            }
+
+
+            /* -------------------------
+               INPUT
+            ------------------------- */
+
+            const input =
+                document.createElement("input");
+
+
+            input.maxLength = 1;
+
+
+            /*
+               Store correct letter
+            */
+
+            input.dataset.answer =
+                data[r][c];
+
+
+            /*
+               Force CAPITAL LETTERS
+            */
+
+            input.addEventListener(
+                "input",
+                function(){
+
+                    this.value =
+                        this.value
+                        .replace(/[^a-zA-Z]/g,"")
+                        .toUpperCase();
+
+
+                    /*
+                       Remove previous
+                       feedback when
+                       student changes
+                       the answer.
+                    */
+
+                    cell.classList.remove(
+                        "correct",
+                        "wrong"
+                    );
+
+                }
+            );
+
+
+            /*
+               Allow Enter/Tab navigation
+            */
+
+            input.addEventListener(
+                "keydown",
+                function(event){
+
+                    if(event.key === "Backspace"){
+
+                        this.value = "";
+
+                        cell.classList.remove(
+                            "correct",
+                            "wrong"
+                        );
+
+                    }
+
+                }
+            );
+
+
+            cell.appendChild(input);
+
+            inputs[key] = input;
+
+        }
+
+
+        grid.appendChild(cell);
+
+    }
+
+}
+
+
+
+/* =====================================================
+   CHECK ANSWERS
+===================================================== */
+
+function check(){
+
+    let solved = 0;
+
+
+    /*
+       Remove previous colours
+    */
+
+    Object.values(inputs).forEach(
+        input => {
+
+            input.parentElement.classList.remove(
+                "correct",
+                "wrong"
+            );
+
+        }
+    );
+
+
+    /*
+       Check every typed cell
+    */
+
+    Object.values(inputs).forEach(
+        input => {
+
+            const typed =
+                input.value
+                .trim()
+                .toUpperCase();
+
+
+            const answer =
+                input.dataset.answer
+                .toUpperCase();
+
+
+            /*
+               Blank cells remain white.
+            */
+
+            if(typed === ""){
+
+                return;
+
+            }
+
+
+            /*
+               CORRECT
+            */
+
+            if(typed === answer){
+
+                input.parentElement.classList.add(
+                    "correct"
+                );
+
+            }
+
+
+            /*
+               WRONG
+            */
+
+            else{
+
+                input.parentElement.classList.add(
+                    "wrong"
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+       Check each complete clue
+    */
+
+    entries.forEach(
+        entry => {
+
+            let correct = true;
+
+
+            for(
+                let i=0;
+                i<entry.w.length;
+                i++
+            ){
+
+                const r =
+                    entry.r +
+                    (
+                        entry.d === "D"
+                        ? i
+                        : 0
+                    );
+
+
+                const c =
+                    entry.c +
+                    (
+                        entry.d === "A"
+                        ? i
+                        : 0
+                    );
+
+
+                const input =
+                    inputs[`${r}-${c}`];
+
+
+                /*
+                   If a letter is missing
+                   or incorrect, clue
+                   is not solved.
+                */
+
+                if(
+                    !input ||
+                    input.value
+                        .trim()
+                        .toUpperCase()
+                    !==
+                    entry.w[i]
+                        .toUpperCase()
+                ){
+
+                    correct = false;
+
+                    break;
+
+                }
+
+            }
+
+
+            if(correct){
+
+                solved++;
+
+            }
+
+        }
+    );
+
+
+    /*
+       Update score
+    */
+
+    document.getElementById("score")
+        .textContent =
+        `${solved} / 6 solved`;
+
+
+    /*
+       Update message
+    */
+
+    if(solved === 6){
+
+        document.getElementById("status")
+            .textContent =
+            "🎉 Excellent! All 6 answers are correct!";
+
+    }
+
+    else{
+
+        document.getElementById("status")
+            .textContent =
+            `${solved} of 6 clues completely correct.`;
+
+    }
+
+}
+
+
+
+/* =====================================================
+   CHECK BUTTON
+===================================================== */
+
+document.getElementById("check")
+    .onclick = check;
+
+
+
+/* =====================================================
+   CLEAR BUTTON
+===================================================== */
+
+document.getElementById("clear")
+    .onclick = function(){
+
+        Object.values(inputs).forEach(
+            input => {
+
+                input.value = "";
+
+                input.parentElement.classList.remove(
+                    "correct",
+                    "wrong"
+                );
+
+            }
+        );
+
+
+        document.getElementById("score")
+            .textContent =
+            "0 / 6 solved";
+
+
+        document.getElementById("status")
+            .textContent =
+            "Cleared. Start again.";
+
+    };
+
+
+
+/* =====================================================
+   REVEAL BUTTON
+===================================================== */
+
+document.getElementById("reveal")
+    .onclick = function(){
+
+        Object.values(inputs).forEach(
+            input => {
+
+                input.value =
+                    input.dataset.answer
+                    .toUpperCase();
+
+
+                input.parentElement.classList.add(
+                    "correct"
+                );
+
+            }
+        );
+
+
+        document.getElementById("score")
+            .textContent =
+            "6 / 6 solved";
+
+
+        document.getElementById("status")
+            .textContent =
+            "Answers revealed.";
+
+    };
+
+</script>
+
+</body>
+</html>
+
