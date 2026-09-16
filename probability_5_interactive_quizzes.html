@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Probability Classroom Quiz Lab</title>
+<style>
+:root{--ink:#172033;--muted:#657086;--bg:#f4f6fb;--card:#fff;--accent:#315efb;--good:#16824b;--bad:#c43b3b;--line:#dce2ee;--gold:#fff4c7}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+header{background:var(--ink);color:#fff;text-align:center;padding:26px 16px}h1{font-size:clamp(30px,6vw,46px);margin:0 0 8px}header p{font-size:18px;margin:0}
+.wrap{max-width:920px;margin:22px auto;padding:0 15px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}
+h2{font-size:27px;margin:0 0 12px}.quizgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.quizpick{padding:20px 14px;text-align:center;font-size:19px;font-weight:700;border:2px solid var(--line);border-radius:14px;background:#fff;cursor:pointer}
+.quizpick:hover{border-color:var(--accent);background:#f5f7ff}.quizpick span{display:block;font-size:14px;color:var(--muted);font-weight:normal;margin-top:6px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;font-weight:700}.progress{height:10px;background:#e7ebf3;border-radius:20px;margin:13px 0 20px;overflow:hidden}.bar{height:100%;width:0;background:var(--accent);transition:.25s}
+.q{font-size:clamp(24px,5vw,33px);font-weight:800;line-height:1.32;margin:18px 0 20px}.opts{display:grid;gap:11px}
+.opt{width:100%;font-size:20px;line-height:1.25;padding:15px;text-align:left;border:2px solid var(--line);background:#fff;border-radius:13px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}.opt:disabled{cursor:default}.correct{background:#eaf8f0!important;border-color:var(--good)!important}.wrong{background:#fff0f0!important;border-color:var(--bad)!important}
+#why{display:none;margin-top:17px;background:#eef3ff;border-left:5px solid var(--accent);padding:17px;border-radius:10px;font-size:18px;line-height:1.55}#why.show{display:block}
+#next{display:none;margin-top:16px;background:var(--accent);color:#fff;border:0;border-radius:11px;padding:14px 22px;font-size:18px;font-weight:700;cursor:pointer}#next.show{display:inline-block}
+.trick{background:var(--gold);padding:17px;border-radius:13px;font-size:18px;line-height:1.6}.hidden{display:none}.result{text-align:center}.score{font-size:62px;font-weight:800;color:var(--accent)}.restart{background:var(--ink);color:#fff;border:0;border-radius:11px;padding:13px 22px;font-size:18px;cursor:pointer}
+.note{color:var(--muted);font-size:15px}
+</style>
+</head>
+<body>
+<header><h1>🧠 Probability Classroom Quiz Lab</h1><p>5 different quizzes • 6 questions each • Choose → Think → Reveal → Understand</p></header>
+<div class="wrap">
+
+<div id="menu" class="card">
+<h2>Choose a Quiz</h2>
+<div class="quizgrid">
+<button class="quizpick" data-q="0">Quiz 1<br>Probability Basics<span>Experiment • Outcome • Sample Space • Event</span></button>
+<button class="quizpick" data-q="1">Quiz 2<br>Counting & Probability<span>Favourable vs total • simple counting</span></button>
+<button class="quizpick" data-q="2">Quiz 3<br>Add or Multiply?<span>Brainstorming scenarios</span></button>
+<button class="quizpick" data-q="3">Quiz 4<br>Two Dice<span>6×6 • sum of 7</span></button>
+<button class="quizpick" data-q="4">Quiz 5<br>Mixed Challenge<span>Apply everything learned</span></button>
+</div>
+<p class="note">Teacher tip: Ask students to explain WHY before revealing the explanation.</p>
+</div>
+
+<div id="game" class="card hidden">
+<div class="top"><span id="quizname"></span><span id="score"></span></div>
+<div class="progress"><div id="bar" class="bar"></div></div>
+<div id="quiz"></div>
+</div>
+
+<div id="result" class="card result hidden"></div>
+
+<div class="card">
+<div class="trick"><b>🧠 MEMORY WALL</b><br>
+<strong>Sample Space</strong> = EVERYTHING that can happen<br>
+<strong>Event</strong> = WHAT I WANT<br>
+<strong>Probability</strong> = WHAT I WANT ÷ EVERYTHING<br>
+<strong>ADD</strong> = combine groups<br>
+<strong>MULTIPLY</strong> = choices for EACH choice<br>
+<strong>Two dice</strong> = 6 choices × 6 choices = 36
+</div>
+</div>
+</div>
+
+<script>
+const quizzes=[
+{title:"Quiz 1 — Probability Basics",qs:[
+["Which is an OUTCOME when a coin is tossed?",["Tossing the coin","{H,T}","Getting Head","All possible results"],2,"An outcome is ONE possible result. Getting Head is one result."],
+["What is the SAMPLE SPACE for a die?",["{1,2,3}","{1,2,3,4,5,6}","{2,4,6}","{6}"],1,"Sample space means ALL possible outcomes."],
+["You roll a die and want an EVEN number. Which is the EVENT?",["{1,2,3,4,5,6}","{1,3,5}","{2,4,6}","{6}"],2,"The event contains the outcomes we are interested in. Even numbers are 2, 4 and 6."],
+["A fair die is rolled. What is P(6)?",["1/2","1/3","1/6","6"],2,"There are 6 possible outcomes and only one favourable outcome: 6. So P(6)=1/6."],
+["A fair die is rolled. What is P(odd)?",["1/6","2/6","3/6","5/6"],2,"Odd numbers are 1, 3 and 5. That is 3 favourable outcomes out of 6, so 3/6=1/2."],
+["Which sentence best describes probability?",["What definitely happens","How likely something is to happen","Only the biggest number","The total number of objects"],1,"Probability tells us how likely an event is to happen."]
+]},
+{title:"Quiz 2 — Counting & Probability",qs:[
+["An urn has 4 blue and 5 red balls. How many balls are there?",["9","20","1","45"],0,"We are combining two groups already in the urn: 4+5=9."],
+["In the urn with 4 blue and 5 red balls, what is P(blue)?",["4/5","5/9","4/9","9/4"],2,"There are 4 favourable balls and 9 total balls, so P(blue)=4/9."],
+["Why is 4+5 used in the urn question?",["Because we make two choices","Because we count the two groups together","Because probability always uses addition","Because 4 is blue"],1,"The question asks for the total number of balls. We combine the blue and red groups."],
+["A bag has 6 apples and 4 oranges. How many fruits are there?",["10","24","2","6"],0,"This is simply combining two groups: 6+4=10."],
+["A class has 3 boys and 5 girls. One student is selected. How many possible students can be selected?",["8","15","2","5"],0,"Every individual student is a possible selection. There are 3+5=8 students."],
+["For equally likely outcomes, which is the basic probability idea?",["Total ÷ favourable","Favourable ÷ total","Favourable + total","Total × favourable"],1,"Probability = favourable outcomes divided by total possible outcomes."]
+]},
+{title:"Quiz 3 — Add or Multiply?",qs:[
+["4 boys + 5 girls. How many students altogether?",["9","20","1","45"],0,"We are combining groups. ADD: 4+5=9."],
+["3 shirts and 2 pants. How many shirt-pant outfits?",["5","6","8","9"],1,"For EACH shirt, there are 2 pants choices. MULTIPLY: 3×2=6."],
+["4 ice-cream flavours and 3 toppings. Choose one of each. How many combinations?",["7","12","1","24"],1,"Each of the 4 flavours can be paired with 3 toppings: 4×3=12."],
+["6 apples + 4 oranges asks for the total. What operation?",["ADD","MULTIPLY","DIVIDE","SUBTRACT"],0,"The question combines two groups. ADD."],
+["A password has 3 choices for the first position and 4 choices for the second. How many passwords?",["7","12","4","3"],1,"For each of the 3 first choices, there are 4 second choices: 3×4=12."],
+["Which memory trick is correct?",["ADD = choices for EACH choice","MULTIPLY = combine groups","ADD = combine groups","Neither"],2,"ADD = combine groups. MULTIPLY = choices for EACH choice."]
+]},
+{title:"Quiz 4 — Two Dice",qs:[
+["One die has how many possible results?",["2","4","6","12"],2,"A normal die has 6 faces, so 6 possible results."],
+["Two dice are rolled. Why do we use 6×6?",["Because dice have 36 faces","The second die has 6 choices for EACH first-die result","Because 6+6=36","Because probability always multiplies"],1,"For every result of die 1, die 2 can show any of 6 results. So 6×6=36."],
+["How many total outcomes are possible with two dice?",["12","18","36","6"],2,"There are 6 choices for the first die and 6 for the second: 6×6=36."],
+["Which pair gives a sum of 7?",["(1,5)","(2,4)","(3,4)","(6,6)"],2,"3+4=7."],
+["How many pairs give a sum of 7?",["1","4","6","7"],2,"They are (1,6),(2,5),(3,4),(4,3),(5,2),(6,1): six outcomes."],
+["What is the probability that two fair dice have sum 7?",["1/36","6/36 = 1/6","7/36","1/7"],1,"There are 36 total outcomes and 6 favourable outcomes. So 6/36=1/6."]
+]},
+{title:"Quiz 5 — Mixed Challenge",qs:[
+["A coin is tossed. What is the sample space?",["{H,T}","{1,2}","{H}","{T}"],0,"Both Head and Tail are possible, so S={H,T}."],
+["A die is rolled. What is P(number greater than 4)?",["1/6","2/6 = 1/3","3/6","4/6"],1,"Numbers greater than 4 are 5 and 6: 2 favourable out of 6."],
+["An urn has 4 blue and 5 red balls. Which is the favourable count for blue?",["4","5","9","20"],0,"We want blue, and there are 4 blue balls."],
+["3 shirts and 2 pants: why multiply?",["We combine two groups","Each shirt can be paired with each pants choice","There are 5 clothes","Probability requires multiplication"],1,"The second choice is available for EACH first choice. Therefore multiply."],
+["Two dice: why is (1,6) different from (6,1)?",["They have different sums","The first die and second die are different positions","They are always the same","There are no dice"],1,"(1,6) means first die=1, second=6; (6,1) reverses those results. They are different outcomes."],
+["A good way to start ANY simple probability question is to ask:",["What formula should I memorise?","What do I want and what can happen?","Can I multiply immediately?","Can I guess the answer?"],1,"First identify what you want (favourable outcomes) and everything that can happen (total outcomes)."]
+]}
+];
+
+let qi=0,si=0,score=0,answered=false;
+
+document.querySelectorAll(".quizpick").forEach(b=>b.addEventListener("click",()=>{
+ qi=+b.dataset.q;si=0;score=0;
+ document.getElementById("menu").classList.add("hidden");
+ document.getElementById("result").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ document.getElementById("quizname").textContent=quizzes[qi].title;
+ render();
+}));
+
+function render(){
+ answered=false;const q=quizzes[qi].qs[si];
+ document.getElementById("score").textContent="Score: "+score;
+ document.getElementById("bar").style.width=(si/quizzes[qi].qs.length*100)+"%";
+ document.getElementById("quiz").innerHTML=
+ `<div class="note">Question ${si+1} of ${quizzes[qi].qs.length}</div>
+  <div class="q">${q[0]}</div>
+  <div class="opts">${q[1].map((v,k)=>`<button class="opt" data-k="${k}">${String.fromCharCode(65+k)}. ${v}</button>`).join("")}</div>
+  <div id="why"><b>💡 WHY?</b><br>${q[3]}</div>
+  <button id="next">${si===quizzes[qi].qs.length-1?"Finish Quiz":"Next Question →"}</button>`;
+ document.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>answer(+b.dataset.k)));
+ document.getElementById("next").addEventListener("click",next);
+}
+function answer(k){
+ if(answered)return;answered=true;const q=quizzes[qi].qs[si];
+ document.querySelectorAll(".opt").forEach((b,n)=>{
+  b.disabled=true;if(n===q[2])b.classList.add("correct");if(n===k&&k!==q[2])b.classList.add("wrong");
+ });
+ if(k===q[2])score++;
+ document.getElementById("score").textContent="Score: "+score;
+ document.getElementById("why").classList.add("show");
+ document.getElementById("next").classList.add("show");
+}
+function next(){
+ if(si<quizzes[qi].qs.length-1){si++;render();window.scrollTo({top:0,behavior:"smooth"});}
+ else finish();
+}
+function finish(){
+ document.getElementById("game").classList.add("hidden");
+ const r=document.getElementById("result");r.classList.remove("hidden");
+ const total=quizzes[qi].qs.length,p=Math.round(score/total*100);
+ r.innerHTML=`<h2>${quizzes[qi].title}</h2><div class="score">${score}/${total}</div>
+ <p style="font-size:22px">${p>=80?"Excellent thinking! 🎉":p>=60?"Good work! 👍":"Keep practising — understand the WHY and try again. 💪"}</p>
+ <button class="restart" onclick="location.reload()">Choose Another Quiz</button>`;
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+</script>
+</body></html>
